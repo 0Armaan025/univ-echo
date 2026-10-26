@@ -11,8 +11,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(PkgConfig REQUIRED)
 
-pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
-pkg_check_modules(SQLite3 REQUIRED IMPORTED_TARGET sqlite3)
+pkg_check_modules(NCURSESW REQUIRED REQUIRED IMPORTED_TARGET ncursesw)
+find_package(SQLite3 REQUIRED)
 
 add_executable(univecho
   src/main.cpp
@@ -20,8 +20,13 @@ add_executable(univecho
 )
 
 target_include_directories(univecho PRIVATE
-  PkgConfig::SDL2
-  PkgConfig::SQLite3
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(univecho PRIVATE
+
+  PkgConfig::NCURSESW
+  SQLite::SQLite3
 )
 
 

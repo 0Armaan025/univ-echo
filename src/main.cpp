@@ -1,71 +1,83 @@
 #include "../include/univ-echo/database.hpp"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_render.h>
-#include <cstdio>
-#include <exception>
 
-int main() {
-  try {
-    univecho::Database database("data/univecho.db");
+#include <ncurses.h>
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-      std::fprintf(stderr, "init failed (SDL): %s\n", SDL_GetError());
-      return 1;
-    }
-    SDL_Window *window =
-        SDL_CreateWindow("UNIV ECHO | Universal Memory", SDL_WINDOWPOS_CENTERED,
-                         SDL_WINDOWPOS_CENTERED, 1100, 700, SDL_WINDOW_SHOWN);
+#include <algorithm>
+#include <cstdlib>
+#include <filesystem>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
-    if (!window) {
-      std::fprintf(stderr, "Window creation failed: %s\n", SDL_GetError());
+namespace {
+std::string databasePath() {
+  const char *home = std::getenv("HOME");
 
-      SDL_Quit();
-      return 1;
-    }
-
-    SDL_Renderer *renderer = SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-    if (!renderer) {
-      std::fprintf(stderr, "Renderer creation failed: %s\n", SDL_GetError());
-
-      SDL_DestroyWindow(window);
-      SDL_Quit();
-
-      return 1;
-    }
-
-    bool running = true;
-    SDL_Event event;
-
-    while (running) {
-      while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
-          running = false;
-        }
-
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
-          running = false;
-        }
-      }
-
-      // dark bg
-
-      SDL_SetRenderDrawColor(renderer, 18, 19, 17, 255);
-      SDL_RenderClear(renderer);
-
-      SDL_RenderPresent(renderer);
-    }
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
-    return 0;
+  if (!home || !*home) {
+    throw std::runtime_error("HOME env variable is missing!!!!");
   }
 
-  catch (const std::exception &error) {
-    std::fprintf(stderr, "UNIVECHO ERROR: %s\n", error.what());
-    return 1;
+  const auto directory = std::filesystem::path(home) / ".local/share/univecho";
+
+  std::filesystem::create_directories(directory);
+  return (directory / "univecho.db").string();
+}
+
+std::string joinArgs(int argc, char *argv[], int start) {
+  std::string result;
+
+  for (int i = start; i < argc; ++i) {
+    if (!result.empty())
+      result += ' ';
+    result += argv[i];
+  }
+
+  return result;
+}
+
+std::string prompt(const std::string &label) {
+  char buffer[1024]{};
+
+  clear();
+
+  mvaddstr(1, 2, label.c_str());
+  mvaddstr(3, 2, "> ");
+  refresh();
+
+  echo();
+  curs_set(1);
+  getnstr(buffer, static_cast<int>(sizeof(buffer) - 1));
+  noecho();
+  curs_set(0);
+  return buffer;
+}
+
+void showMemory(const univecho::Memory &memory) {
+  clear();
+  mvprintw(1, 2, "MEMORY #%lld", memory.id);
+  mvprintw(3, 2, "Title: %s", memory.title.c_str());
+  mvprintw(4, 2, "Created: %s", memory.createdAt.c_str());
+  mvprintw(6, 2, "Content: ");
+
+  int row = 7;
+  std::string line;
+  const int maxRows = std::max(8, LINES - 3);
+
+  for (char c : memory.content) {
+    if (c == '\n' || line.size() >= 120) {
+      if (row >= maxRows)
+        break;
+      mvaddnstr(row++, 2, line.c_str(), COLS > 4 ? COLS - 4 : 1);
+      line.clear();
+
+      if (c == '\n')
+        continue;
+    }
+
+    if (c != '\r')
+      line += c;
   }
 }
+
+} // namespace
