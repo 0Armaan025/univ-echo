@@ -1,0 +1,3 @@
+/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/CMakeFiles/univecho.dir
+/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/CMakeFiles/edit_cache.dir
+/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/CMakeFiles/rebuild_cache.dir

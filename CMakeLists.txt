@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(UNIVECHO
+project(univ_echo
   VERSION 0.1.0
   LANGUAGES CXX
 )
@@ -25,7 +25,7 @@ target_include_directories(univecho PRIVATE
 )
 
 
-target_compile_options(echo PRIVATE
+target_compile_options(univecho PRIVATE
   -Wall
   -Wextra
   -Wpedantic

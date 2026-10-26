@@ -1,4 +1,4 @@
-#include "../../include/univ-echo/database.hpp";
+#include "../../include/univ-echo/database.hpp"
 #include <sqlite3.h>
 #include <stdexcept>
 
