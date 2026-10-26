@@ -1,6 +1,8 @@
 # ninja log v7
-1	288	1793017142284602155	CMakeFiles/univecho.dir/src/core/database.cpp.o	4a4a0afd71bc6c51
-1	421	1793017142282843333	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
-421	455	1793017142702862478	univecho	70bbb8fa245922a1
-2	410	1793017195942190508	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
-410	447	1793017196350207614	univecho	70bbb8fa245922a1
+2	290	1793017311221629231	CMakeFiles/univecho.dir/src/core/database.cpp.o	4a4a0afd71bc6c51
+2	410	1793017579282530730	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
+410	451	1793017579690540756	univecho	70bbb8fa245922a1
+3	67	1793038733042109365	build.ninja	a345f342d42e8b05
+3	67	1793038733042109365	/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/cmake_install.cmake	a345f342d42e8b05
+1	427	1793038733054109551	CMakeFiles/univecho.dir/src/core/command_history.cpp.o	ce4b6be6a7c1fafa
+427	465	1793038733480116159	univecho	2e3e5891cc416861

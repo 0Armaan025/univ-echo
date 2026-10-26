@@ -103,17 +103,18 @@ void draw(const std::vector<univecho::Memory> &memories, int selected,
     const auto &memory = memories[static_cast<std::size_t>(i)];
     const int row = 5 + i;
 
-    if (i == selected) {
+    if (static_cast<int>(i) == selected) {
       attron(A_REVERSE);
     }
 
-    mvprintw(row, 2, "%c #%lld  ", i == selected ? '>' : ' ', memory.id);
+    mvprintw(row, 2, "%c #%lld  ", static_cast<int>(i) == selected ? '>' : ' ',
+             memory.id);
 
     const int titleColumn = 2 + 4 + 20;
     mvaddnstr(row, titleColumn, memory.title.c_str(),
               std::max(1, COLS - titleColumn - 2));
 
-    if (i == selected) {
+    if (static_cast<int>(i) == selected) {
       attroff(A_REVERSE);
     }
   }
@@ -149,7 +150,7 @@ void runTui(univecho::Database &database) {
 
       switch (key) {
       case 'p':
-      case 'Q':
+      case 'q':
         running = false;
         break;
       case KEY_UP:
@@ -218,20 +219,15 @@ void runTui(univecho::Database &database) {
 
   endwin();
 }
-
 void printHelp() {
-  std::cout << "UNIV-ECHO - Universal Memory\n\n"
-               "usage:\n"
-               " univecho              Open the TUI\n"
-               " univecho tui             Open the TUI\n"
-               " univecho add TITLE TEXT   "
-               "         Save a memory\n"
-
-               " univecho list             List memories\n"
-
-               " univecho search QUERY             Search memories\n"
-
-               " univecho help             Show this help\n";
+  std::cout << "ECHO - Universal Memory\n\n"
+               "Usage:\n"
+               "  univecho                 Open the TUI\n"
+               "  univecho tui             Open the TUI\n"
+               "  univecho add TITLE TEXT  Save a memory\n"
+               "  univecho list            List memories\n"
+               "  univecho search QUERY    Search memories\n"
+               "  univecho help            Show this help\n";
 }
 } // namespace
 //

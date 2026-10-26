@@ -129,52 +129,50 @@ Database::~Database() {
 }
 
 void Database::initialize() {
+
   const char *schema = R"SQL(
-  CREATE TABLE IF NOT EXISTS memories (
-    id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
-  
-  CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts
-  USING fts5(title, content, content='memories',
-              content_rowid='id');
+    CREATE TABLE IF NOT EXISTS memories (
+        id INTEGER PRIMARY KEY,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
 
-  CREATE TRIGGER IF NOT EXISTS memories_ai
-  AFTER INSERT ON memories BEGIN
-      INSERT INTO memories_fts(rowid, title, content)
-      VALUES (new.id, new.title, new.content);
+    CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts
+    USING fts5(
+        title,
+        content,
+        content='memories',
+        content_rowid='id'
+    );
 
-  END;
-
-  CREATE TRIGGER IF NOT EXISTS memories_ad
-  AFTER DELETE ON memories BEGIN
-      INSERT INTO memories_fts(
-          memories_fts, rowid, title, content
-  ) VALUES (
-  '       'delete', old.id, old.title, old.content
-  );
-
-  END;
-
-  CREATE TRIGGER IF NOT EXISTS memories_au
-  AFTER UPDATE ON memories BEGIN
-      INSERT INTO memories_fts(
-          memories_fts, rowid, title, content
-      ) VALUES (
-          'delete', old.id, old.title, old.content
-      );
-
-     INSERT INTO memories_fts(rowid, title, content)
-     VALUES(new.id, new.title, new.content);
-
-    
-
-
+    CREATE TRIGGER IF NOT EXISTS memories_ai
+    AFTER INSERT ON memories BEGIN
+        INSERT INTO memories_fts(rowid, title, content)
+        VALUES (new.id, new.title, new.content);
     END;
 
-  )SQL";
+    CREATE TRIGGER IF NOT EXISTS memories_ad
+    AFTER DELETE ON memories BEGIN
+        INSERT INTO memories_fts(
+            memories_fts, rowid, title, content
+        ) VALUES (
+            'delete', old.id, old.title, old.content
+        );
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS memories_au
+    AFTER UPDATE ON memories BEGIN
+        INSERT INTO memories_fts(
+            memories_fts, rowid, title, content
+        ) VALUES (
+            'delete', old.id, old.title, old.content
+        );
+
+        INSERT INTO memories_fts(rowid, title, content)
+        VALUES (new.id, new.title, new.content);
+    END;
+)SQL";
 
   char *error = nullptr;
   const int rc = sqlite3_exec(db_, schema, nullptr, nullptr, &error);

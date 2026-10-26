@@ -17,6 +17,7 @@ find_package(SQLite3 REQUIRED)
 add_executable(univecho
   src/main.cpp
   src/core/database.cpp
+  src/core/command_history.cpp
 )
 
 target_include_directories(univecho PRIVATE
