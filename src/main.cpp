@@ -78,6 +78,217 @@ void showMemory(const univecho::Memory &memory) {
     if (c != '\r')
       line += c;
   }
+
+  if (!line.empty() && row < maxRows) {
+    mvaddnstr(row, 2, line.c_str(), COLS > 4 ? COLS - 4 : 1);
+  }
+
+  mvaddstr(LINES - 1, 2, "Press any key to return!!!");
+
+  refresh();
+  getch();
+  // idk what this will do lollll
 }
 
+void draw(const std::vector<univecho::Memory> &memories, int selected,
+          const std::string &mode) {
+  erase();
+
+  mvaddstr(0, 2, " U N I V E C H O   |    UNIVERSAL MEMORY");
+  mvprintw(1, 2, "Mode: %s | %zu results", mode.c_str(), memories.size());
+
+  mvaddstr(3, 2, "YOUR MEMORIES");
+
+  for (std::size_t i = 0; i < memories.size(); ++i) {
+    const auto &memory = memories[static_cast<std::size_t>(i)];
+    const int row = 5 + i;
+
+    if (i == selected) {
+      attron(A_REVERSE);
+    }
+
+    mvprintw(row, 2, "%c #%lld  ", i == selected ? '>' : ' ', memory.id);
+
+    const int titleColumn = 2 + 4 + 20;
+    mvaddnstr(row, titleColumn, memory.title.c_str(),
+              std::max(1, COLS - titleColumn - 2));
+
+    if (i == selected) {
+      attroff(A_REVERSE);
+    }
+  }
+
+  mvaddstr(LINES - 3, 2, "[n] New [/] Search [r] All [Enter] Open");
+  mvaddstr(LINES - 2, 2, "[Up/Down] Navigate    [q] Quit");
+
+  refresh();
+}
+
+void runTui(univecho::Database &database) {
+  if (!initscr()) {
+    throw std::runtime_error("Couldn't initalize ncurses");
+  }
+
+  try {
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    curs_set(0);
+
+    std::string mode = "All memories";
+    auto memories = database.list();
+    int selected = 0;
+    bool running = true;
+
+    while (running) {
+      selected = std::clamp(selected, 0,
+                            std::max(0, static_cast<int>(memories.size()) - 1));
+
+      draw(memories, selected, mode);
+      const int key = getch();
+
+      switch (key) {
+      case 'p':
+      case 'Q':
+        running = false;
+        break;
+      case KEY_UP:
+        if (selected > 0)
+          --selected;
+        break;
+
+      case KEY_DOWN:
+        if (selected + 1 < static_cast<int>(memories.size())) {
+          ++selected;
+        }
+        break;
+
+      case '\n':
+      case KEY_ENTER:
+        if (!memories.empty()) {
+          showMemory(memories[static_cast<std::size_t>(selected)]);
+        }
+        break;
+
+      case 'n': {
+        const auto title = prompt("new memory title");
+        if (title.empty())
+          break;
+
+        const auto content = prompt("Memory content");
+        database.add(title, content);
+
+        mode = "All memories";
+        memories = database.list();
+        selected = 0;
+        break;
+      }
+
+      case '/': {
+        const auto query = prompt("Search memories");
+        try {
+          memories = database.search(query);
+          mode = "Search: " + query;
+          selected = 0;
+        } catch (const std::exception &e) {
+          erase();
+          mvprintw(2, 2, "Search failed: %s", e.what());
+          mvaddstr(4, 2, "Press any key to continue");
+          refresh();
+          getch();
+        }
+
+        break;
+      }
+
+      case 'r':
+        memories = database.list();
+
+        mode = "All memories";
+        selected = 0;
+        break;
+      }
+    }
+
+  } catch (...) {
+
+    endwin();
+    throw;
+  }
+
+  endwin();
+}
+
+void printHelp() {
+  std::cout << "UNIV-ECHO - Universal Memory\n\n"
+               "usage:\n"
+               " univecho              Open the TUI\n"
+               " univecho tui             Open the TUI\n"
+               " univecho add TITLE TEXT   "
+               "         Save a memory\n"
+
+               " univecho list             List memories\n"
+
+               " univecho search QUERY             Search memories\n"
+
+               " univecho help             Show this help\n";
+}
 } // namespace
+//
+
+int main(int argc, char *argv[]) {
+  try {
+    univecho::Database database(databasePath());
+
+    if (argc == 1 || (argc == 2 && std::string(argv[1]) == "tui")) {
+      runTui(database);
+      return 0;
+    }
+
+    const std::string command = argv[1];
+
+    if (command == "help" || command == "--help" || command == "-h") {
+      printHelp();
+    } else if (command == "add") {
+      if (argc < 4) {
+        std::cerr << "Usage: univecho add TITLE TEXT\n";
+        return 2;
+      }
+
+      database.add(argv[2], joinArgs(argc, argv, 3));
+      std::cout << "Memory saved.\n";
+    } else if (command == "list") {
+      for (const auto &memory : database.list()) {
+        std::cout << "#" << memory.id << "  " << memory.title << "\n"
+                  << "  " << memory.content << "\n"
+                  << "  " << memory.createdAt << "\n\n";
+      }
+    } else if (command == "search") {
+      if (argc < 3) {
+        std::cerr << "Usage: univecho search QUERY\n";
+        return 2;
+      }
+
+      const auto results = database.search(joinArgs(argc, argv, 2));
+
+      for (const auto &memory : results) {
+        std::cout << "#" << memory.id << "  " << memory.title << "\n"
+                  << "  " << memory.content << "\n\n";
+      }
+
+      std::cout << results.size() << " result(s).\n";
+    }
+
+    else {
+      printHelp();
+      return 2;
+    }
+
+    return 0;
+  }
+
+  catch (const std::exception &error) {
+    std::cerr << "UNIVECHO ERROR: " << error.what() << "\n";
+    return 1;
+  }
+}

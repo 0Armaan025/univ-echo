@@ -1,3 +1,6 @@
 # ninja log v7
-1	224	1793013277571378980	CMakeFiles/univecho.dir/src/core/database.cpp.o	d85055cda56d779b
-1	498	1793013277570379033	CMakeFiles/univecho.dir/src/main.cpp.o	91f3280a04f870eb
+1	288	1793017142284602155	CMakeFiles/univecho.dir/src/core/database.cpp.o	4a4a0afd71bc6c51
+1	421	1793017142282843333	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
+421	455	1793017142702862478	univecho	70bbb8fa245922a1
+2	410	1793017195942190508	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
+410	447	1793017196350207614	univecho	70bbb8fa245922a1
