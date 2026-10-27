@@ -11,6 +11,9 @@
 #include <stdexcept>
 #include <string>
 
+#include <ctime>
+#include <iomanip>
+
 #include <vector>
 
 namespace {
@@ -223,14 +226,15 @@ void runTui(univecho::Database &database) {
   endwin();
 }
 void printHelp() {
-  std::cout << "ECHO - Universal Memory\n\n"
+  std::cout << "UNIVECHO - Universal Memory\n\n"
                "Usage:\n"
-               "  univecho                 Open the TUI\n"
-               "  univecho tui             Open the TUI\n"
-               "  univecho add TITLE TEXT  Save a memory\n"
-               "  univecho list            List memories\n"
-               "  univecho search QUERY    Search memories\n"
-               "  univecho help            Show this help\n";
+               "  univecho                            Open the TUI\n"
+               "  univecho tui                        Open the TUI\n"
+               "  univecho commands QUERY             Search command history\n"
+               "  univecho add TITLE TEXT             Save a memory\n"
+               "  univecho list                       List memories\n"
+               "  univecho search QUERY               Search memories\n"
+               "  univecho help                       Show this help\n";
 }
 } // namespace
 //
@@ -276,6 +280,45 @@ int main(int argc, char *argv[]) {
         return 1;
       }
 
+      return 0;
+    }
+
+    if (command == "commands") {
+
+      if (argc < 3) {
+        std::cerr << "Usage: univecho commands QUERY\n";
+        return 2;
+      }
+
+      const std::string query = joinArgs(argc, argv, 2);
+      const auto results = database.searchCommands(query);
+
+      if (results.empty()) {
+        cout << "No matching commands found..." << endl;
+        return 0;
+      }
+
+      for (const auto &record : results) {
+        std::cout << "[" << record.sourceShell << "] ";
+
+        if (record.timestamp) {
+          const std::time_t timestamp = *record.timestamp;
+          std::tm localTime{};
+
+          if (localtime_r(&timestamp, &localTime)) {
+            cout << put_time(&localTime, "%Y-%m-%d %H:%M:%S");
+          } else {
+            cout << "timestamp not availableee" << endl;
+          }
+        } else {
+
+          cout << "timestamp not availableee" << endl;
+        }
+
+        cout << endl << record.command << endl << endl;
+      }
+
+      cout << results.size() << " unique command(s).\n";
       return 0;
     }
 
