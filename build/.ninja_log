@@ -6,3 +6,8 @@
 3	67	1793038733042109365	/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/cmake_install.cmake	a345f342d42e8b05
 1	427	1793038733054109551	CMakeFiles/univecho.dir/src/core/command_history.cpp.o	ce4b6be6a7c1fafa
 427	465	1793038733480116159	univecho	2e3e5891cc416861
+12	578	1793122266479923799	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
+12	578	1793122266481204663	CMakeFiles/univecho.dir/src/core/database.cpp.o	4a4a0afd71bc6c51
+578	637	1793122267045932626	univecho	2e3e5891cc416861
+2	425	1793122538878050238	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
+425	467	1793122539301056487	univecho	2e3e5891cc416861

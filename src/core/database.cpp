@@ -172,6 +172,15 @@ void Database::initialize() {
         INSERT INTO memories_fts(rowid, title, content)
         VALUES (new.id, new.title, new.content);
     END;
+
+    CREATE TABLE IF NOT EXISTS command_history (
+        id INTEGER PRIMARY KEY,
+        command TEXT NOT NULL,
+        source_shell TEXT NOT NULL,
+        timestamp INTEGER,
+        imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(command, source_shell, timestamp)
+    );
 )SQL";
 
   char *error = nullptr;
@@ -240,6 +249,47 @@ std::vector<Memory> Database::search(const std::string &input) {
                       "WHERE memories_fts MATCH ?"
                       "ORDER BY rank LIMIT 100;",
                       &query);
+}
+
+void Database::importCommands(std::vector<CommandHistoryEntry> &entries) {
+  const char *sql = R"SQL(
+    INSERT INTO command_history(command, source_shell, timestamp)
+    VALUES (?, ?, ?)
+    ON CONFLICT(command, source_shell, timestamp) DO NOTHING;
+  )SQL";
+
+  Statement statement(db_, sql);
+
+  for (const auto &entry : entries) {
+    check(sqlite3_bind_text(statement.get(), 1, entry.command.c_str(),
+                            static_cast<int>(entry.command.size()),
+                            SQLITE_TRANSIENT),
+          db_, "Binding command");
+    check(sqlite3_bind_text(statement.get(), 2, entry.sourceShell.c_str(),
+                            static_cast<int>(entry.sourceShell.size()),
+                            SQLITE_TRANSIENT),
+          db_, "Binding source shell");
+
+    if (entry.timestamp) {
+      check(sqlite3_bind_int64(statement.get(), 3,
+                               static_cast<sqlite3_int64>(*entry.timestamp)),
+            db_, "Binding tiemstamp");
+    } else {
+      check(sqlite3_bind_null(statement.get(), 3), db_, "Binding timestamp");
+    }
+
+    const int rc = sqlite3_step(statement.get());
+
+    if (rc != SQLITE_DONE) {
+      throw std::runtime_error(std::string("Importing command history: ") +
+                               sqlite3_errmsg(db_));
+    }
+
+    // reusing
+
+    sqlite3_reset(statement.get());
+    sqlite3_clear_bindings(statement.get());
+  }
 }
 
 } // namespace univecho

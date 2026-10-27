@@ -3,6 +3,9 @@
 #include <sqlite3.h>
 #include <vector>
 
+#include "./command_history.hpp"
+#include <ctime>
+#include <optional>
 #include <string>
 
 #include <iostream>
@@ -15,6 +18,16 @@ struct Memory {
   std::string content;
   std::string createdAt;
 };
+
+struct CommandRecord {
+  long long id{};
+  std::string command;
+
+  std::string sourceShell;
+
+  std::optional<std::time_t> timestamp;
+};
+
 class Database {
 public:
   explicit Database(const std::string &path);
@@ -31,6 +44,9 @@ public:
   std::vector<Memory> list();
 
   std::vector<Memory> search(const std::string &query);
+
+  void importCommands(std::vector<CommandHistoryEntry> &entries);
+  std::vector<CommandRecord> searchCommands(const std::string &query);
 
 private:
   sqlite3 *db_ = nullptr;

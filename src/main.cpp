@@ -1,13 +1,16 @@
+#include "../include/univ-echo/command_history.hpp"
 #include "../include/univ-echo/database.hpp"
 
 #include <ncurses.h>
 
 #include <algorithm>
 #include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+
 #include <vector>
 
 namespace {
@@ -242,6 +245,39 @@ int main(int argc, char *argv[]) {
     }
 
     const std::string command = argv[1];
+
+    if (command == "import-history") {
+      const char *historyEnv = std::getenv("HISTFILE");
+
+      std::filesystem::path historyPath;
+
+      if (historyEnv && *historyEnv) {
+        historyPath = historyEnv;
+      } else {
+        const char *home = std::getenv("HOME");
+
+        if (!home || !*home) {
+          std::cerr << "UNIVECHO: home is not set \n";
+          return 1;
+        }
+
+        historyPath = std::filesystem::path(home) / ".config/zsh/.zsh_history";
+      }
+
+      try {
+        auto entries = univecho::CommandHistoryImporter::parseZsh(historyPath);
+
+        database.importCommands(entries);
+
+        cout << "Imported: " << entries.size()
+             << " parsed history entries from Zsh." << endl;
+      } catch (const std::exception &error) {
+        std::cerr << "UNIVECHO: " << error.what() << endl;
+        return 1;
+      }
+
+      return 0;
+    }
 
     if (command == "help" || command == "--help" || command == "-h") {
       printHelp();
