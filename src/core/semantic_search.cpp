@@ -82,7 +82,66 @@ bool isValidUtf8(const std::string &s) {
   return true;
 }
 
-std::string sanitizeUtf8(const std::string &input) { std::string output; }
+std::string sanitizeUtf8(const std::string &input) {
+  std::string output;
+
+  output.reserve(input.size());
+
+  const auto *p = reinterpret_cast<const unsigned char *>(input.data());
+
+  std::size_t i = 0;
+
+  while (i < input.size()) {
+    const unsigned char c = p[i];
+
+    if (c <= 0x7F) {
+      output.push_back(static_cast<char>(c));
+      ++i;
+      continue;
+    }
+
+    std::size_t length = 0;
+
+    if (c >= 0xC2 && c <= 0xDF)
+      length = 2;
+
+    else if (c >= 0xE0 && c <= 0xEF)
+      length = 3;
+    else if (c >= 0xF0 && c <= 0xF4)
+      length = 4;
+
+    bool valid = length != 0 && i + length <= input.size();
+
+    if (valid) {
+      for (std::size_t j = 1; j < length; ++j) {
+        if ((p[i + j] & 0xC0) != 0x80) {
+          valid = false;
+          break;
+        }
+      }
+    }
+
+    if (valid && length == 3 &&
+        ((c == 0xE0 && p[i + 1] < 0xA0) || (c == 0xED && p[i + 1] >= 0xA0))) {
+      valid = false;
+    }
+    if (valid && length == 4 &&
+        ((c == 0xF0 && p[i + 1] < 0x90) || (c == 0xF4 && p[i + 1] >= 0x90))) {
+      valid = false;
+    }
+
+    if (valid) {
+      output.append(input, i, length);
+      i += length;
+    } else {
+      // using U+FFFD (unicode's replacement)
+      output.append("\xEF\xBF\xBD");
+      ++i;
+    }
+  }
+
+  return output;
+}
 
 std::vector<Embedding> embedRemote(const std::vector<std::string> &texts) {
 
@@ -433,7 +492,8 @@ std::vector<CommandRecord> semanticSearch(Database &database,
     return {};
   }
 
-  const auto queryVectors = embedCache({"search_query: " + question});
+  const auto queryVectors =
+      embedCache({"search_query: " + sanitizeUtf8(question)});
 
   const auto &queryVector = queryVectors.front();
 
@@ -444,7 +504,7 @@ std::vector<CommandRecord> semanticSearch(Database &database,
   documents.reserve(records.size());
 
   for (const auto &record : records) {
-    documents.push_back("search_document: " + record.command);
+    documents.push_back("search_document: " + sanitizeUtf8(record.command));
   }
 
   const auto documentVectors = embedCache(documents);
