@@ -268,6 +268,24 @@ fs::path cachePath() {
   throw std::runtime_error("Cannot locate a user cache directory");
 }
 
+void normalizeEmbedding(Embedding &embedding) {
+  float normSquared = 0.0F;
+
+  for (float value : embedding) {
+    normSquared += value * value;
+  }
+
+  if (normSquared <= 0.0F) {
+    return;
+  }
+
+  const float inverseNorm = 1.0F / std::sqrt(normSquared);
+
+  for (float &value : embedding) {
+    value *= inverseNorm;
+  }
+}
+
 class EmbeddingCache {
 public:
   void load() {
@@ -287,15 +305,24 @@ public:
     char magic[8]{};
     in.read(magic, sizeof(magic));
     const char expected[8] = {'U', 'E', 'C', 'H', 'C', '0', '0', '1'};
+    const char version1[8] = {'U', 'E', 'C', 'H', 'C', '0', '0', '1'};
+    const char version2[8] = {'U', 'E', 'C', 'H', 'C', '0', '0', '2'};
+
+    const bool oldFormat =
+        std::equal(std::begin(magic), std::end(magic), std::begin(version1));
+    const bool newFormat =
+        std::equal(std::begin(magic), std::end(magic), std::begin(version2));
 
     std::uint64_t count = 0;
     in.read(reinterpret_cast<char *>(&count), sizeof(count));
 
-    if (!in ||
-        !std::equal(std::begin(magic), std::end(magic), std::begin(expected)) ||
-        count > 1000000) {
+    if (!in || (!oldFormat && newFormat) || count > 1000000) {
       entries_.clear();
       return;
+    }
+
+    if (oldFormat) {
+      dirty_ = true;
     }
 
     for (std::uint64_t i = 0; i < count; ++i) {
@@ -323,6 +350,10 @@ public:
         return;
       }
 
+      if (oldFormat) {
+        normalizeEmbedding(vector);
+      }
+
       entries_.insert_or_assign(std::move(key), std::move(vector));
     }
   }
@@ -333,6 +364,7 @@ public:
   }
 
   void insert(const std::string &key, Embedding vector) {
+    normalizeEmbedding(vector);
     entries_.insert_or_assign(key, std::move(vector));
     dirty_ = true;
   }
@@ -360,7 +392,7 @@ public:
         throw std::runtime_error("Cannot write embedding cache");
       }
 
-      const char magic[8] = {'U', 'E', 'C', 'H', 'C', '0', '0', '1'};
+      const char magic[8] = {'U', 'E', 'C', 'H', 'C', '0', '0', '2'};
 
       const auto count = static_cast<std::uint64_t>(entries_.size());
 
@@ -462,20 +494,12 @@ float similarity(const Embedding &a, const Embedding &b) {
   }
 
   float dot = 0.0F;
-  float normA = 0.0F;
-  float normB = 0.0f;
 
   for (std::size_t i = 0; i < a.size(); ++i) {
     dot += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
   }
 
-  if (normA == 0.0F || normB == 0.0F) {
-    return -1.0F;
-  }
-
-  return dot / (std::sqrt(normA) * std::sqrt(normB));
+  return dot;
 }
 
 } // namespace
