@@ -318,7 +318,7 @@ public:
     std::uint64_t count = 0;
     in.read(reinterpret_cast<char *>(&count), sizeof(count));
 
-    if (!in || (!oldFormat && newFormat) || count > 1000000) {
+    if (!in || (!oldFormat && !newFormat) || count > 1000000) {
       entries_.clear();
       return;
     }
@@ -560,7 +560,7 @@ float lexicalScore(const std::string &query, const std::string &command) {
     c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
   }
 
-  if (lowerQuery.empty() &&
+  if (!lowerQuery.empty() &&
       lowerCommand.find(lowerQuery) != std::string::npos) {
     score = std::max(score, 0.95F);
   }
