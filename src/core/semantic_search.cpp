@@ -9,12 +9,14 @@
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include <iostream>
 namespace univecho {
 namespace {
 using json = nlohmann::json;
@@ -36,6 +38,51 @@ size_t receiveResponse(char *data, size_t size, size_t count, void *userData) {
 }
 
 // let's change too one request for uncached oness
+
+bool isValidUtf8(const std::string &s) {
+  const auto *p = reinterpret_cast<const unsigned char *>(s.data());
+
+  std::size_t i = 0;
+  while (i < s.size()) {
+    const unsigned char c = p[i];
+
+    if (c <= 0x7F) {
+      ++i;
+      continue;
+    }
+
+    std::size_t length = 0;
+    if (c >= 0xC2 && c <= 0xDF)
+      length = 2;
+    else if (c >= 0xE0 && c <= 0xEF)
+      length = 3;
+    else if (c >= 0xF0 && c <= 0xF4)
+      length = 4;
+    else
+      return false;
+
+    if (i + length > s.size())
+      return false;
+
+    for (std::size_t j = 1; j < length; ++j) {
+      if ((p[i + j] & 0xC0) != 0x80)
+        return false;
+    }
+
+    if (length == 3 &&
+        ((c == 0xE0 && p[i + 1] < 0xA0) || (c == 0xED && p[i + 1] >= 0xA0)))
+      return false;
+    if (length == 4 &&
+        ((c == 0xF0 && p[i + 1] < 0x90) || (c == 0xF4 && p[i + 1] >= 0x90)))
+      return false;
+
+    i += length;
+  }
+
+  return true;
+}
+
+std::string sanitizeUtf8(const std::string &input) { std::string output; }
 
 std::vector<Embedding> embedRemote(const std::vector<std::string> &texts) {
 
@@ -61,6 +108,23 @@ std::vector<Embedding> embedRemote(const std::vector<std::string> &texts) {
   const json request = {
       {"model", MODEL}, {"input", texts}, {"keep_alive", "5m"}};
 
+  for (std::size_t i = 0; i < texts.size(); ++i) {
+    if (!isValidUtf8(texts[i])) {
+      std::string message = "Invalid UTF-8 at batch index " +
+                            std::to_string(i) + ", input length " +
+                            std::to_string(texts[i].size()) + " bytes. Hex: ";
+
+      constexpr char hex[] = "0123456789ABCDEF";
+
+      for (unsigned char c : texts[i]) {
+        message += hex[c >> 4];
+        message += hex[c & 0x0F];
+        message += ' ';
+      }
+
+      throw std::runtime_error(message);
+    }
+  }
   const std::string body = request.dump();
   std::string response;
 
@@ -190,9 +254,8 @@ public:
       Embedding vector(dimensions);
 
       in.read(key.data(), static_cast<std::streamsize>(key.size()));
-      in.read(reinterpret_cast<char *>(
-          vector.data(),
-          static_cast<std::streamsize>(vector.size() * sizeof(float))));
+      in.read(reinterpret_cast<char *>(vector.data()),
+              static_cast<std::streamsize>(vector.size() * sizeof(float)));
 
       if (!in) {
         entries_.clear();
@@ -266,7 +329,70 @@ public:
         throw std::runtime_error("failed while writing embedding cache");
       }
     }
+
+    fs::rename(temporary, destination, ec);
+
+    if (ec) {
+      fs::remove(temporary);
+      throw std::runtime_error("Cannot finalize embedding cache: " +
+                               ec.message());
+    }
+
+    dirty_ = false;
   }
+
+private:
+  bool loaded_ = false;
+  bool dirty_ = false;
+
+  std::unordered_map<std::string, Embedding> entries_;
+};
+
+EmbeddingCache &embeddingCache() {
+  static EmbeddingCache cache;
+
+  return cache;
+}
+
+std::vector<Embedding> embedCache(const std::vector<std::string> &texts) {
+  auto &cache = embeddingCache();
+  cache.load();
+
+  std::vector<Embedding> results(texts.size());
+  std::vector<std::string> missing;
+  std::vector<std::size_t> missingPositions;
+  missing.reserve(texts.size());
+  missingPositions.reserve(texts.size());
+
+  for (std::size_t i = 0; i < texts.size(); ++i) {
+    if (const auto *cached = cache.find(texts[i])) {
+      results[i] = *cached;
+
+    } else {
+      missing.push_back(texts[i]);
+      missingPositions.push_back(i);
+    }
+  }
+
+  for (std::size_t start = 0; start < missing.size(); start += BATCH_SIZE) {
+    const std::size_t end = std::min(start + BATCH_SIZE, missing.size());
+
+    std::vector<std::string> batch(
+        missing.begin() + static_cast<std::ptrdiff_t>(start),
+        missing.begin() + static_cast<std::ptrdiff_t>(end));
+
+    auto vectors = embedRemote(batch);
+
+    for (std::size_t j = 0; j < vectors.size(); ++j) {
+      const std::size_t position = missingPositions[start + j];
+      results[position] = vectors[j];
+      cache.insert(missing[start + j], std::move(vectors[j]));
+    }
+  }
+
+  cache.save();
+
+  return results;
 }
 
 float similarity(const Embedding &a, const Embedding &b) {
@@ -307,42 +433,42 @@ std::vector<CommandRecord> semanticSearch(Database &database,
     return {};
   }
 
-  const auto questionVectors = embed({"search_query: " + question});
+  const auto queryVectors = embedCache({"search_query: " + question});
 
-  const auto &questionVector = questionVectors.front();
+  const auto &queryVector = queryVectors.front();
 
   std::vector<std::pair<float, CommandRecord>> ranked;
   ranked.reserve(records.size());
 
-  constexpr std::size_t batchSize = 64;
+  std::vector<std::string> documents;
+  documents.reserve(records.size());
 
-  for (std::size_t start = 0; start < records.size(); start += batchSize) {
-    const std::size_t end = std::min(start + batchSize, records.size());
-
-    std::vector<std::string> commands;
-    commands.reserve(end - start);
-
-    for (std::size_t i = start; i < end; ++i) {
-      commands.push_back("search_document: " + records[i].command);
-    }
-
-    const auto commandVectors = embed(commands);
-
-    for (std::size_t i = 0; i < commandVectors.size(); ++i) {
-      const float score = similarity(questionVector, commandVectors[i]);
-
-      auto record = records[start + i];
-      record.semanticScore = score;
-
-      ranked.emplace_back(score, std::move(record));
-    }
+  for (const auto &record : records) {
+    documents.push_back("search_document: " + record.command);
   }
 
-  std::sort(ranked.begin(), ranked.end(),
-            [](const auto &a, const auto &b) { return a.first > b.first; });
+  const auto documentVectors = embedCache(documents);
+
+  for (std::size_t i = 0; i < documentVectors.size(); ++i) {
+
+    ranked.emplace_back(similarity(queryVector, documentVectors[i]),
+                        records[i]);
+  }
+
+  const std::size_t count = std::min(RESULT_LIMIT, ranked.size());
+
+  if (count < ranked.size()) {
+    std::partial_sort(
+        ranked.begin(), ranked.begin() + static_cast<std::ptrdiff_t>(count),
+        ranked.end(),
+        [](const auto &a, const auto &b) { return a.first > b.first; });
+  } else {
+    std::sort(ranked.begin(), ranked.end(),
+              [](const auto &a, const auto &b) { return a.first > b.first; });
+  }
 
   std::vector<CommandRecord> results;
-  const std::size_t count = std::min<std::size_t>(100, ranked.size());
+
   results.reserve(count);
 
   for (std::size_t i = 0; i < count; ++i) {
@@ -351,4 +477,5 @@ std::vector<CommandRecord> semanticSearch(Database &database,
 
   return results;
 }
+
 } // namespace univecho
