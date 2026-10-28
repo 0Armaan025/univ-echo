@@ -47,6 +47,7 @@ public:
 
   void importCommands(std::vector<CommandHistoryEntry> &entries);
   std::vector<CommandRecord> searchCommands(const std::string &query);
+  std::vector<CommandRecord> listCommands();
 
 private:
   sqlite3 *db_ = nullptr;

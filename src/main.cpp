@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 
+#include <cstdio>
 #include <ctime>
 #include <iomanip>
 
@@ -57,6 +58,19 @@ std::string prompt(const std::string &label) {
   noecho();
   curs_set(0);
   return buffer;
+}
+
+bool copyToClipboard(const std::string &command) {
+  FILE *pipe = popen("wl-copy", "w");
+
+  if (!pipe) {
+    return false;
+  }
+
+  const bool written =
+      std::fwrite(command.data(), 1, command.size(), pipe) == command.size();
+
+  return pclose(pipe) == 0 && written;
 }
 
 void showMemory(const univecho::Memory &memory) {
@@ -245,11 +259,11 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvhline(bottomY, tableX + 1, ACS_HLINE, tableWidth - 2);
   mvaddch(bottomY, tableX + tableWidth - 1, ACS_LRCORNER);
 
-  mvaddstr(LINES - 3, 2, "[Up/Down] Navigate   [/] Search   [Esc] Back");
+  mvaddstr(LINES - 3, 2,
+           "[Up/Down] Navigate  [Enter] Copy   [/] Search   [Esc] Back");
   mvaddstr(LINES - 2, 2, "[q] Back");
   refresh();
 }
-
 void runCommandHistory(univecho::Database &database) {
   std::string query = prompt("Search command history");
   auto records = database.searchCommands(query);
@@ -269,8 +283,7 @@ void runCommandHistory(univecho::Database &database) {
 
     switch (key) {
     case 27:
-      return;
-      break;
+
     case 'q':
       return;
     case KEY_UP:
@@ -283,6 +296,21 @@ void runCommandHistory(univecho::Database &database) {
       if (selected + 1 < static_cast<int>(records.size())) {
 
         ++selected;
+      }
+      break;
+    case '\n':
+    case KEY_ENTER:
+      if (!records.empty()) {
+        const auto &command =
+            records[static_cast<std::size_t>(selected)].command;
+
+        if (copyToClipboard(command)) {
+          mvaddstr(LINES - 1, 2, "Command copied to clipboard!");
+        } else {
+          mvaddstr(LINES - 1, 2, "Clipboard copy failed.");
+        }
+
+        refresh();
       }
       break;
 

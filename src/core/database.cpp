@@ -346,4 +346,45 @@ std::vector<CommandRecord> Database::searchCommands(const std::string &input) {
   return results;
 }
 
+std::vector<CommandRecord> Database::listCommands() {
+  Statement statement(db_,
+                      "SELECT h.id, h.command, h.source_shell, h.timestamp "
+                      "FROM command_history AS h "
+                      "WHERE h.id = ("
+                      " SELECT newer.id FROM command_history AS newer "
+                      " WHERE newer.command = h.command "
+                      " ORDER BY (newer.timestamp IS NOT NULL) DESC, "
+                      "           newer.timestamp DESC, newer.id DESC "
+                      " LIMIT 1"
+                      ") "
+                      "ORDER BY (h.timestamp IS NOT NULL) DESC, "
+                      "         h.timestamp DESC, h.id DESC "
+                      "LIMIT 1000;");
+
+  std::vector<CommandRecord> results;
+  int rc;
+
+  while ((rc = sqlite3_step(statement.get())) == SQLITE_ROW) {
+    CommandRecord record;
+    record.id = sqlite3_column_int64(statement.get(), 0);
+    record.command = columnText(statement.get(), 1);
+    record.sourceShell = columnText(statement.get(), 2);
+
+    if (sqlite3_column_type(statement.get(), 3) != SQLITE_NULL) {
+      record.timestamp =
+          static_cast<std::time_t>(sqlite3_column_int64(statement.get(), 3));
+    }
+
+    results.push_back(std::move(record));
+    ;
+  }
+
+  if (rc != SQLITE_DONE) {
+    throw std::runtime_error(std::string("listing commands... ") +
+                             sqlite3_errmsg(db_));
+  }
+
+  return results;
+}
+
 } // namespace univecho
