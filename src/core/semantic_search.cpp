@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -13,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -488,6 +490,84 @@ std::vector<Embedding> embedCache(const std::vector<std::string> &texts) {
   return results;
 }
 
+std::unordered_set<std::string> tokenize(const std::string &text) {
+  static const std::unordered_set<std::string> stopWords = {
+      "a",   "an",     "the",     "to",   "for", "of", "in",
+      "on",  "width",  "me",      "my",   "how", "do", "i",
+      "can", "please", "command", "find", "show"};
+
+  std::unordered_set<std::string> tokens;
+  std::string token;
+
+  auto flush = [&]() {
+    if (!token.empty() && stopWords.find(token) == stopWords.end()) {
+      tokens.insert(token);
+    }
+
+    token.clear();
+  };
+
+  // alright
+
+  for (unsigned char c : text) {
+    if (std::isalnum(c)) {
+      token.push_back(static_cast<char>(std::tolower(c)));
+    } else {
+      flush();
+    }
+  }
+
+  flush();
+
+  return tokens;
+}
+
+float lexicalScore(const std::string &query, const std::string &command) {
+  const auto queryTokens = tokenize(query);
+  const auto commandTokens = tokenize(command);
+
+  if (queryTokens.empty() || commandTokens.empty()) {
+    return 0.0F;
+  }
+
+  std::size_t matches = 0;
+
+  for (const auto &token : queryTokens) {
+    if (commandTokens.find(token) != commandTokens.end()) {
+      ++matches;
+    }
+  }
+
+  const float coverage =
+      static_cast<float>(matches) / static_cast<float>(queryTokens.size());
+
+  const float precision =
+      static_cast<float>(matches) / static_cast<float>(commandTokens.size());
+
+  float score = 0.8F * coverage + 0.2F * precision;
+
+  std::string lowerQuery = query;
+  std::string lowerCommand = command;
+
+  // this thing is too confusing, going over my head UHHH I SUCK
+
+  for (char &c : lowerQuery) {
+    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+  }
+
+  for (char &c : lowerCommand) {
+
+    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+  }
+
+  if (lowerQuery.empty() &&
+      lowerCommand.find(lowerQuery) != std::string::npos) {
+    score = std::max(score, 0.95F);
+  }
+
+  return std::clamp(score, 0.0F, 1.0F);
+}
+
 float similarity(const Embedding &a, const Embedding &b) {
   if (a.size() != b.size() || a.empty()) {
     return -1.0F;
@@ -539,8 +619,16 @@ std::vector<CommandRecord> semanticSearch(Database &database,
 
   for (std::size_t i = 0; i < documentVectors.size(); ++i) {
 
-    ranked.emplace_back(similarity(queryVector, documentVectors[i]),
-                        records[i]);
+    const float semantic =
+        std::clamp(similarity(queryVector, documentVectors[i]), 0.0F, 1.0F);
+
+    const float lexical = lexicalScore(question, records[i].command);
+
+    // semantic >>
+    const float combined = 0.75F * semantic + 0.25F * lexical;
+    auto record = records[i];
+    record.semanticScore = combined;
+    ranked.emplace_back(combined, std::move(record));
   }
 
   const std::size_t count = std::min(RESULT_LIMIT, ranked.size());

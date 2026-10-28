@@ -239,7 +239,7 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
     }
 
     const int scorePercent =
-        static_cast<int>((record.semanticScore + 1.0F) * 50.0F);
+        static_cast<int>(std::clamp(record.semanticScore, 0.0F, 1.0F) * 100.0F);
 
     mvaddnstr(row, timeX, timestampText.c_str(), timeWidth);
     mvaddnstr(row, commandX, record.command.c_str(), commandWidth);
