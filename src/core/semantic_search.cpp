@@ -46,7 +46,7 @@ std::vector<Embedding> embed(const std::vector<std::string> &texts) {
   }
 
   const json request = {
-      {"model", "all-minilm"}, {"input", texts}, {"keep_alive", "5m"}};
+      {"model", "nomic-embed-text"}, {"input", texts}, {"keep_alive", "5m"}};
 
   const std::string body = request.dump();
   std::string response;
@@ -150,7 +150,7 @@ std::vector<CommandRecord> semanticSearch(Database &database,
     return {};
   }
 
-  const auto questionVectors = embed({question});
+  const auto questionVectors = embed({"search_query: " + question});
 
   const auto &questionVector = questionVectors.front();
 
@@ -166,7 +166,7 @@ std::vector<CommandRecord> semanticSearch(Database &database,
     commands.reserve(end - start);
 
     for (std::size_t i = start; i < end; ++i) {
-      commands.push_back(records[i].command);
+      commands.push_back("search_document: " + records[i].command);
     }
 
     const auto commandVectors = embed(commands);

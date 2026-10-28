@@ -261,7 +261,7 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvaddch(bottomY, tableX + tableWidth - 1, ACS_LRCORNER);
 
   mvaddstr(LINES - 3, 2,
-           "[Up/Down] Navigate  [Enter] Copy   [/] Search/ask   [Esc] Back");
+           "[Up/Down] Navigate  [Enter] Copy   [/] Search   [Esc] Back");
   mvaddstr(LINES - 2, 2, "[q] Back");
   refresh();
 }
