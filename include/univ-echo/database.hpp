@@ -26,6 +26,8 @@ struct CommandRecord {
   std::string sourceShell;
 
   std::optional<std::time_t> timestamp;
+
+  float semanticScore{};
 };
 
 class Database {

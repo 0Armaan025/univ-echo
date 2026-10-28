@@ -168,11 +168,14 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   const int tableWidth = COLS - 4;
   const int timeWidth = 19;
   const int shellWidth = 6;
-  const int commandWidth = tableWidth - timeWidth - shellWidth - 4;
+
+  const int scoreWidth = 7;
+  const int commandWidth = tableWidth - timeWidth - shellWidth - scoreWidth - 4;
 
   const int timeX = 3;
   const int commandX = timeX + timeWidth + 1;
   const int shellX = commandX + commandWidth + 1;
+  const int scoreX = shellX + shellWidth + 1;
 
   const int topY = 3;
   const int headerY = 4;
@@ -192,6 +195,7 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvaddnstr(headerY, timeX, "TIME", timeWidth);
   mvaddnstr(headerY, commandX, "COMMAND", commandWidth);
   mvaddnstr(headerY, shellX, "SHELL", shellWidth);
+  mvaddnstr(headerY, scoreX, "SCORE", scoreWidth);
 
   attroff(A_BOLD);
 
@@ -234,9 +238,13 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
       }
     }
 
+    const int scorePercent =
+        static_cast<int>((record.semanticScore + 1.0F) * 50.0F);
+
     mvaddnstr(row, timeX, timestampText.c_str(), timeWidth);
     mvaddnstr(row, commandX, record.command.c_str(), commandWidth);
     mvaddnstr(row, shellX, record.sourceShell.c_str(), shellWidth);
+    mvprintw(row, scoreX, "%3d%%", scorePercent);
 
     if (index == selected) {
       attroff(A_REVERSE);
@@ -251,8 +259,12 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvvline(headerY, tableX + tableWidth - 1, ACS_VLINE,
           firstRowY + visibleRows - headerY);
 
+  mvvline(headerY, shellX + shellWidth, ACS_VLINE,
+          firstRowY + visibleRows - headerY);
+
   mvaddch(separatorY, timeX + timeWidth, ACS_PLUS);
   mvaddch(separatorY, commandX + commandWidth, ACS_PLUS);
+  mvaddch(separatorY, shellX + shellWidth, ACS_PLUS);
 
   const int bottomY = firstRowY + visibleRows;
 
@@ -265,9 +277,21 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvaddstr(LINES - 2, 2, "[q] Back");
   refresh();
 }
+
+std::vector<univecho::CommandRecord>
+searchWithLoading(univecho::Database &database, const std::string &query) {
+  erase();
+  mvaddstr(1, 2, "UNIVECHO | SEMANTIC COMMAND SEARCH");
+  mvaddstr(3, 2, "Loading model results...");
+  mvaddstr(4, 2, "Embedding commands and ranking matches.");
+  refresh();
+
+  return univecho::semanticSearch(database, query);
+}
+
 void runCommandHistory(univecho::Database &database) {
   std::string query = prompt("Search command history");
-  auto records = univecho::semanticSearch(database, query);
+  auto records = searchWithLoading(database, query);
   int selected = 0;
 
   while (true) {
@@ -318,12 +342,32 @@ void runCommandHistory(univecho::Database &database) {
     case '/':
       query = prompt("Search command history/ask about a command: ");
       try {
-        records = univecho::semanticSearch(database, query);
+        records = searchWithLoading(database, query);
+
+        if (records.empty() && !query.empty()) {
+
+          records = database.searchCommands(query);
+        }
         selected = 0;
       } catch (const std::exception &error) {
-        mvprintw(LINES - 1, 2, "Search failed: %s", error.what());
-        refresh();
-        getch();
+        // if ollama ain't working
+
+        try {
+
+          records = database.searchCommands(query);
+          selected = 0;
+
+          if (records.empty()) {
+            mvprintw(LINES - 1, 2, "SEARCH FAILED: %.100s", error.what());
+
+            refresh();
+            getch();
+          }
+        } catch (...) {
+          mvaddstr(LINES - 1, 2, "Semantic and literal search failed.");
+          refresh();
+          getch();
+        }
       }
       break;
     }

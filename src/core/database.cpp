@@ -358,11 +358,11 @@ std::vector<CommandRecord> Database::listCommands() {
                       " LIMIT 1"
                       ") "
                       "ORDER BY (h.timestamp IS NOT NULL) DESC, "
-                      "         h.timestamp DESC, h.id DESC "
-                      "LIMIT 1000;");
+                      "         h.timestamp DESC, h.id DESC;");
 
   std::vector<CommandRecord> results;
   int rc;
+  // alright ig
 
   while ((rc = sqlite3_step(statement.get())) == SQLITE_ROW) {
     CommandRecord record;
