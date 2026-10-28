@@ -24,7 +24,8 @@ using Embedding = std::vector<float>;
 
 namespace fs = std::filesystem;
 
-constexpr const char *MODEL = "nomic-embed-text";
+// constexpr const char *MODEL = "nomic-embed-text";
+constexpr const char *MODEL = "qwen3-embedding:0.6b";
 constexpr std::size_t BATCH_SIZE = 64;
 constexpr std::size_t RESULT_LIMIT = 100;
 
@@ -256,11 +257,12 @@ std::vector<Embedding> embedRemote(const std::vector<std::string> &texts) {
 
 fs::path cachePath() {
   if (const char *xdg = std::getenv("XDG_CACHE_HOME"); xdg && *xdg) {
-    return fs::path(xdg) / "univecho" / "nomic-embed-text-v1.bin";
+    return fs::path(xdg) / "univecho" / "qwen3-embedding-0.6b-v1.bin";
   }
 
   if (const char *home = std::getenv("HOME"); home && *home) {
-    return fs::path(home) / ".cache" / "univecho" / "nomic-embed-text-v1.bin";
+    return fs::path(home) / ".cache" / "univecho" /
+           "qwen3-embedding-0.6b-v1.bin";
   }
 
   throw std::runtime_error("Cannot locate a user cache directory");
@@ -493,7 +495,9 @@ std::vector<CommandRecord> semanticSearch(Database &database,
   }
 
   const auto queryVectors =
-      embedCache({"search_query: " + sanitizeUtf8(question)});
+      embedCache({"Instruct: retrieve the most relevant shell command for "
+                  "user's request \nQuery:  " +
+                  sanitizeUtf8(question)});
 
   const auto &queryVector = queryVectors.front();
 
@@ -504,7 +508,7 @@ std::vector<CommandRecord> semanticSearch(Database &database,
   documents.reserve(records.size());
 
   for (const auto &record : records) {
-    documents.push_back("search_document: " + sanitizeUtf8(record.command));
+    documents.push_back(sanitizeUtf8(record.command));
   }
 
   const auto documentVectors = embedCache(documents);
