@@ -318,6 +318,7 @@ public:
     std::uint64_t count = 0;
     in.read(reinterpret_cast<char *>(&count), sizeof(count));
 
+    // okay
     if (!in || (!oldFormat && !newFormat) || count > 1000000) {
       entries_.clear();
       return;
@@ -326,6 +327,8 @@ public:
     if (oldFormat) {
       dirty_ = true;
     }
+    // alright
+    // uymm something
 
     for (std::uint64_t i = 0; i < count; ++i) {
       std::uint32_t keySize = 0;
@@ -483,9 +486,9 @@ std::vector<Embedding> embedCache(const std::vector<std::string> &texts) {
       results[position] = vectors[j];
       cache.insert(missing[start + j], std::move(vectors[j]));
     }
-  }
 
-  cache.save();
+    cache.save();
+  }
 
   return results;
 }
@@ -592,10 +595,68 @@ std::vector<CommandRecord> semanticSearch(Database &database,
     return {};
   }
 
-  const auto records = database.listCommands();
+  const auto allRecords = database.listCommands();
 
-  if (records.empty()) {
+  if (allRecords.empty()) {
     return {};
+  }
+
+  constexpr std::size_t CANDIDATE_LIMIT = 400;
+  constexpr std::size_t RECENT_LIMIT = 200;
+  constexpr std::size_t LEXICAL_LIMIT = 300;
+
+  std::vector<std::pair<float, std::size_t>> lexicalRanked;
+
+  lexicalRanked.reserve(allRecords.size());
+
+  for (std::size_t i = 0; i < allRecords.size(); ++i) {
+    lexicalRanked.emplace_back(lexicalScore(question, allRecords[i].command),
+                               i);
+  }
+
+  const std::size_t lexicalCount =
+      std::min(LEXICAL_LIMIT, lexicalRanked.size());
+
+  std::partial_sort(
+      lexicalRanked.begin(),
+      lexicalRanked.begin() + static_cast<std::ptrdiff_t>(lexicalCount),
+      lexicalRanked.end(),
+      [](const auto &a, const auto &b) { return a.first > b.first; });
+  std::vector<CommandRecord> records;
+
+  records.reserve(std::min(CANDIDATE_LIMIT, allRecords.size()));
+
+  std::unordered_set<std::size_t> selected;
+  selected.reserve(CANDIDATE_LIMIT);
+
+  auto addCandidate = [&](std::size_t index) {
+    if (records.size() < CANDIDATE_LIMIT && selected.insert(index).second) {
+      records.push_back(allRecords[index]);
+    }
+  };
+
+  for (std::size_t i = 0; i < lexicalCount; ++i) {
+    if (lexicalRanked[i].first > 0.0F) {
+      addCandidate(lexicalRanked[i].second);
+    }
+  }
+
+  for (std::size_t i = 0; i < allRecords.size() && i < RECENT_LIMIT; ++i) {
+    addCandidate(i);
+  }
+
+  const std::size_t stride =
+      std::max<std::size_t>(1, allRecords.size() / CANDIDATE_LIMIT);
+
+  for (std::size_t i = 0;
+       i < allRecords.size() && records.size() < CANDIDATE_LIMIT; i += stride) {
+    addCandidate(i);
+  }
+
+  // uhhh
+  for (std::size_t i = 0;
+       i < allRecords.size() && records.size() < CANDIDATE_LIMIT; ++i) {
+    addCandidate(i);
   }
 
   const auto queryVectors =
