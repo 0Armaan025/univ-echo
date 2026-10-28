@@ -1,5 +1,6 @@
 #include "../include/univ-echo/command_history.hpp"
 #include "../include/univ-echo/database.hpp"
+#include "../include/univ-echo/semantic_search.hpp"
 
 #include <ncurses.h>
 
@@ -140,7 +141,7 @@ void draw(const std::vector<univecho::Memory> &memories, int selected,
   }
 
   mvaddstr(LINES - 3, 2,
-           "[n] New [/] Search [c] Commands [r] All [Enter] Open");
+           "[n] New [/] Search/Ask [c] Commands [r] All [Enter] Open");
   mvaddstr(LINES - 2, 2, "[Up/Down] Navigate    [q] Quit");
 
   refresh();
@@ -260,13 +261,13 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvaddch(bottomY, tableX + tableWidth - 1, ACS_LRCORNER);
 
   mvaddstr(LINES - 3, 2,
-           "[Up/Down] Navigate  [Enter] Copy   [/] Search   [Esc] Back");
+           "[Up/Down] Navigate  [Enter] Copy   [/] Search/ask   [Esc] Back");
   mvaddstr(LINES - 2, 2, "[q] Back");
   refresh();
 }
 void runCommandHistory(univecho::Database &database) {
   std::string query = prompt("Search command history");
-  auto records = database.searchCommands(query);
+  auto records = univecho::semanticSearch(database, query);
   int selected = 0;
 
   while (true) {
@@ -315,9 +316,15 @@ void runCommandHistory(univecho::Database &database) {
       break;
 
     case '/':
-      query = prompt("Search command history: ");
-      records = database.searchCommands(query);
-      selected = 0;
+      query = prompt("Search command history/ask about a command: ");
+      try {
+        records = univecho::semanticSearch(database, query);
+        selected = 0;
+      } catch (const std::exception &error) {
+        mvprintw(LINES - 1, 2, "Search failed: %s", error.what());
+        refresh();
+        getch();
+      }
       break;
     }
   }

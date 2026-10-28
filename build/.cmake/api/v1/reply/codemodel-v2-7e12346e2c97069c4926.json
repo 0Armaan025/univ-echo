@@ -6,6 +6,13 @@
 			[
 				{
 					"directoryIndex" : 0,
+					"id" : "CURL::libcurl::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-CURL__libcurl-0336b28c738568a7815e.json",
+					"name" : "CURL::libcurl",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "PkgConfig::NCURSESW::@6890427a1f51a3e7e1df",
 					"jsonFile" : "target-PkgConfig__NCURSESW-fe00ab498bcbddb31bcd.json",
 					"name" : "PkgConfig::NCURSESW",
@@ -33,7 +40,8 @@
 					[
 						0,
 						1,
-						2
+						2,
+						3
 					],
 					"build" : ".",
 					"jsonFile" : "directory-.-b23a0b23c080df4d29ba.json",
@@ -57,7 +65,8 @@
 					[
 						0,
 						1,
-						2
+						2,
+						3
 					],
 					"directoryIndexes" : 
 					[
@@ -75,7 +84,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "univecho::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-univecho-63bdf69b3ada07a17dde.json",
+					"jsonFile" : "target-univecho-6760fa6020f7f41e0205.json",
 					"name" : "univecho",
 					"projectIndex" : 0
 				}

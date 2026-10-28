@@ -16,13 +16,15 @@
 			"_pkg_create_imp_target",
 			"_pkg_recalculate",
 			"pkg_check_modules",
+			"find_package",
 			"target_compile_options",
 			"target_include_directories"
 		],
 		"files" : 
 		[
 			"CMakeLists.txt",
-			"/usr/share/cmake/Modules/FindPkgConfig.cmake"
+			"/usr/share/cmake/Modules/FindPkgConfig.cmake",
+			"/usr/share/cmake/Modules/FindCURL.cmake"
 		],
 		"nodes" : 
 		[
@@ -32,13 +34,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 17,
+				"line" : 18,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 27,
+				"line" : 29,
 				"parent" : 0
 			},
 			{
@@ -68,13 +70,29 @@
 			{
 				"command" : 6,
 				"file" : 0,
-				"line" : 34,
+				"line" : 16,
 				"parent" : 0
+			},
+			{
+				"file" : 2,
+				"parent" : 7
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 332,
+				"parent" : 8
 			},
 			{
 				"command" : 7,
 				"file" : 0,
-				"line" : 23,
+				"line" : 37,
+				"parent" : 0
+			},
+			{
+				"command" : 8,
+				"file" : 0,
+				"line" : 25,
 				"parent" : 0
 			}
 		]
@@ -93,6 +111,10 @@
 		{
 			"backtrace" : 2,
 			"id" : "SQLite::SQLite3::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "CURL::libcurl::@6890427a1f51a3e7e1df"
 		}
 	],
 	"compileGroups" : 
@@ -104,15 +126,15 @@
 					"fragment" : "-std=c++20"
 				},
 				{
-					"backtrace" : 7,
+					"backtrace" : 10,
 					"fragment" : "-Wall"
 				},
 				{
-					"backtrace" : 7,
+					"backtrace" : 10,
 					"fragment" : "-Wextra"
 				},
 				{
-					"backtrace" : 7,
+					"backtrace" : 10,
 					"fragment" : "-Wpedantic"
 				},
 				{
@@ -127,7 +149,7 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 8,
+					"backtrace" : 11,
 					"path" : "/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/include"
 				}
 			],
@@ -144,7 +166,8 @@
 			[
 				0,
 				1,
-				2
+				2,
+				3
 			]
 		}
 	],
@@ -159,8 +182,18 @@
 				"role" : "libraries"
 			},
 			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/libcurl.so",
+				"role" : "libraries"
+			},
+			{
 				"backtrace" : 6,
 				"fragment" : "/usr/lib/libncursesw.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 9,
+				"fragment" : "/usr/lib/libcurl.so",
 				"role" : "libraries"
 			}
 		],
@@ -175,6 +208,10 @@
 		{
 			"backtrace" : 2,
 			"id" : "SQLite::SQLite3::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "CURL::libcurl::@6890427a1f51a3e7e1df"
 		}
 	],
 	"name" : "univecho",
@@ -192,7 +229,8 @@
 			[
 				0,
 				1,
-				2
+				2,
+				3
 			]
 		}
 	],
@@ -226,6 +264,16 @@
 			],
 			"compileGroupIndex" : 0,
 			"path" : "src/core/command_history.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"backtraces" : 
+			[
+				1
+			],
+			"compileGroupIndex" : 0,
+			"path" : "src/core/semantic_search.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

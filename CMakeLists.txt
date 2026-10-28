@@ -13,11 +13,13 @@ find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(NCURSESW REQUIRED REQUIRED IMPORTED_TARGET ncursesw)
 find_package(SQLite3 REQUIRED)
+find_package(CURL REQUIRED)
 
 add_executable(univecho
   src/main.cpp
   src/core/database.cpp
   src/core/command_history.cpp
+  src/core/semantic_search.cpp
 )
 
 target_include_directories(univecho PRIVATE
@@ -28,6 +30,7 @@ target_link_libraries(univecho PRIVATE
 
   PkgConfig::NCURSESW
   SQLite::SQLite3
+  CURL::libcurl
 )
 
 
