@@ -125,10 +125,174 @@ void draw(const std::vector<univecho::Memory> &memories, int selected,
     }
   }
 
-  mvaddstr(LINES - 3, 2, "[n] New [/] Search [r] All [Enter] Open");
+  mvaddstr(LINES - 3, 2,
+           "[n] New [/] Search [c] Commands [r] All [Enter] Open");
   mvaddstr(LINES - 2, 2, "[Up/Down] Navigate    [q] Quit");
 
   refresh();
+}
+
+void drawCommands(const std::vector<univecho::CommandRecord> &records,
+                  int selected, const std::string &query) {
+
+  erase();
+
+  mvaddstr(0, 2, "   UNIVECHO   |   COMMAND HISTORY");
+  mvprintw(1, 2, "Search: %s | %zu results", query.c_str(), records.size());
+
+  if (COLS < 45 || LINES < 12) {
+    mvaddstr(3, 2, "Terminal too small for the command table...");
+    mvaddstr(LINES - 2, 2, "Press esc to return");
+
+    refresh();
+
+    return;
+  }
+
+  const int tableX = 2;
+  const int tableWidth = COLS - 4;
+  const int timeWidth = 19;
+  const int shellWidth = 6;
+  const int commandWidth = tableWidth - timeWidth - shellWidth - 4;
+
+  const int timeX = 3;
+  const int commandX = timeX + timeWidth + 1;
+  const int shellX = commandX + commandWidth + 1;
+
+  const int topY = 3;
+  const int headerY = 4;
+  const int separatorY = 5;
+  const int firstRowY = 6;
+  const int visibleRows = LINES - 11;
+
+  // top border
+
+  mvaddch(topY, tableX, ACS_ULCORNER);
+  mvhline(topY, tableX + 1, ACS_HLINE, tableWidth - 2);
+  mvaddch(topY, tableX + tableWidth - 1, ACS_URCORNER);
+
+  // header
+
+  attron(A_BOLD);
+  mvaddnstr(headerY, timeX, "TIME", timeWidth);
+  mvaddnstr(headerY, commandX, "COMMAND", commandWidth);
+  mvaddnstr(headerY, shellX, "SHELL", shellWidth);
+
+  attroff(A_BOLD);
+
+  // header separator
+
+  mvaddch(separatorY, tableX, ACS_LTEE);
+  mvhline(separatorY, tableX + 1, ACS_HLINE, tableWidth - 2);
+
+  mvaddch(separatorY, tableX + tableWidth - 1, ACS_RTEE);
+
+  for (int i = 0; i < visibleRows; ++i) {
+    const int index = selected - selected % visibleRows + i;
+
+    const int row = firstRowY + i;
+
+    if (index >= static_cast<int>(records.size())) {
+      break;
+    }
+
+    const auto &record = records[static_cast<std::size_t>(index)];
+
+    if (index == selected) {
+      attron(A_REVERSE);
+    }
+
+    std::string timestampText;
+
+    if (record.timestamp) {
+      const std::time_t timestamp = *record.timestamp;
+      std::tm localTime{};
+
+      if (localtime_r(&timestamp, &localTime)) {
+        char buffer[32]{};
+
+        if (std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S",
+                          &localTime) > 0) {
+
+          timestampText = buffer;
+        }
+      }
+    }
+
+    mvaddnstr(row, timeX, timestampText.c_str(), timeWidth);
+    mvaddnstr(row, commandX, record.command.c_str(), commandWidth);
+    mvaddnstr(row, shellX, record.sourceShell.c_str(), shellWidth);
+
+    if (index == selected) {
+      attroff(A_REVERSE);
+    }
+  }
+
+  mvvline(headerY, tableX, ACS_VLINE, firstRowY + visibleRows - headerY);
+  mvvline(headerY, timeX + timeWidth, ACS_VLINE,
+          firstRowY + visibleRows - headerY);
+  mvvline(headerY, commandX + commandWidth, ACS_VLINE,
+          firstRowY + visibleRows - headerY);
+  mvvline(headerY, tableX + tableWidth - 1, ACS_VLINE,
+          firstRowY + visibleRows - headerY);
+
+  mvaddch(separatorY, timeX + timeWidth, ACS_PLUS);
+  mvaddch(separatorY, commandX + commandWidth, ACS_PLUS);
+
+  const int bottomY = firstRowY + visibleRows;
+
+  mvaddch(bottomY, tableX, ACS_LLCORNER);
+  mvhline(bottomY, tableX + 1, ACS_HLINE, tableWidth - 2);
+  mvaddch(bottomY, tableX + tableWidth - 1, ACS_LRCORNER);
+
+  mvaddstr(LINES - 3, 2, "[Up/Down] Navigate   [/] Search   [Esc] Back");
+  mvaddstr(LINES - 2, 2, "[q] Back");
+  refresh();
+}
+
+void runCommandHistory(univecho::Database &database) {
+  std::string query = prompt("Search command history");
+  auto records = database.searchCommands(query);
+  int selected = 0;
+
+  while (true) {
+    if (!records.empty()) {
+      selected = std::clamp(selected, 0, static_cast<int>(records.size()) - 1);
+
+    } else {
+      selected = 0;
+    }
+
+    drawCommands(records, selected, query);
+
+    const int key = getch();
+
+    switch (key) {
+    case 27:
+      return;
+      break;
+    case 'q':
+      return;
+    case KEY_UP:
+      if (selected > 0) {
+        --selected;
+      }
+      break;
+
+    case KEY_DOWN:
+      if (selected + 1 < static_cast<int>(records.size())) {
+
+        ++selected;
+      }
+      break;
+
+    case '/':
+      query = prompt("Search command history: ");
+      records = database.searchCommands(query);
+      selected = 0;
+      break;
+    }
+  }
 }
 
 void runTui(univecho::Database &database) {
@@ -159,6 +323,8 @@ void runTui(univecho::Database &database) {
       case 'q':
         running = false;
         break;
+      case 'c':
+        runCommandHistory(database);
       case KEY_UP:
         if (selected > 0)
           --selected;
@@ -308,11 +474,8 @@ int main(int argc, char *argv[]) {
           if (localtime_r(&timestamp, &localTime)) {
             cout << put_time(&localTime, "%Y-%m-%d %H:%M:%S");
           } else {
-            cout << "timestamp not availableee" << endl;
           }
         } else {
-
-          cout << "timestamp not availableee" << endl;
         }
 
         cout << endl << record.command << endl << endl;
