@@ -12,13 +12,27 @@
 #include <stdexcept>
 #include <string>
 
+#include <cctype>
 #include <cstdio>
 #include <ctime>
-#include <iomanip>
 
 #include <vector>
 
 namespace {
+
+bool containsInsensitive(std::string text, std::string filter) {
+  const auto lowercase = [](std::string &value) {
+    for (char &ch : value) {
+      ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+    }
+  };
+
+  lowercase(text);
+  lowercase(filter);
+
+  return text.find(filter) != std::string::npos;
+}
+
 std::string databasePath() {
   const char *home = std::getenv("HOME");
 
@@ -59,6 +73,60 @@ std::string prompt(const std::string &label) {
   noecho();
   curs_set(0);
   return buffer;
+}
+
+bool liveCommandPrompt(univecho::Database &database, const std::string &label,
+                       std::string &query) {
+  query.clear();
+
+  while (true) {
+    std::vector<univecho::CommandRecord> matches;
+
+    if (!query.empty()) {
+      matches = database.searchCommands(query);
+    }
+
+    erase();
+
+    mvaddstr(1, 2, label.c_str());
+    mvaddstr(3, 2, "> ");
+    mvaddnstr(3, 4, query.c_str(), std::max(1, COLS - 6));
+
+    mvaddstr(5, 2, "LIVE MATCHES");
+
+    const int visible = std::min(7, std::max(0, LINES - 10));
+
+    for (int i = 0; i < visible && i < static_cast<int>(matches.size()); ++i) {
+      mvaddnstr(6 + i, 2, matches[static_cast<std::size_t>(i)].command.c_str(),
+
+                std::max(1, COLS - 4));
+    }
+
+    mvaddstr(LINES - 2, 2,
+             "[Enter] Semantic Search  [Esc] Cancel   [Backspace]   Edit");
+    refresh();
+
+    const int key = getch();
+
+    if (key == 27) {
+      return false;
+    }
+
+    if (key == '\n' || key == KEY_ENTER) {
+      return true;
+    }
+
+    if (key == KEY_BACKSPACE || key == 127 || key == 8) {
+      if (!query.empty()) {
+        query.pop_back();
+      }
+      continue;
+    }
+
+    if (key >= 32 && key <= 126 && query.size() < 500) {
+      query.push_back(static_cast<char>(key));
+    }
+  }
 }
 
 bool copyToClipboard(const std::string &command) {
@@ -195,7 +263,7 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvaddnstr(headerY, timeX, "TIME", timeWidth);
   mvaddnstr(headerY, commandX, "COMMAND", commandWidth);
   mvaddnstr(headerY, shellX, "SHELL", shellWidth);
-  mvaddnstr(headerY, scoreX, "SCORE", scoreWidth);
+  mvaddnstr(headerY, scoreX, "MATCH%", scoreWidth);
 
   attroff(A_BOLD);
 
@@ -244,7 +312,12 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
     mvaddnstr(row, timeX, timestampText.c_str(), timeWidth);
     mvaddnstr(row, commandX, record.command.c_str(), commandWidth);
     mvaddnstr(row, shellX, record.sourceShell.c_str(), shellWidth);
-    mvprintw(row, scoreX, "%3d%%", scorePercent);
+    if (record.semanticScore > 0.0F) {
+
+      mvprintw(row, scoreX, "%3d%%", scorePercent);
+    } else {
+      mvaddnstr(row, scoreX, "--", scoreWidth);
+    }
 
     if (index == selected) {
       attroff(A_REVERSE);
@@ -271,10 +344,13 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvaddch(bottomY, tableX, ACS_LLCORNER);
   mvhline(bottomY, tableX + 1, ACS_HLINE, tableWidth - 2);
   mvaddch(bottomY, tableX + tableWidth - 1, ACS_LRCORNER);
+  mvaddstr(LINES - 4, 2, "MATCH% = ranking score, not probability.");
 
-  mvaddstr(LINES - 3, 2,
-           "[Up/Down] Navigate  [Enter] Copy   [/] Search   [Esc] Back");
-  mvaddstr(LINES - 2, 2, "[q] Back");
+  mvaddstr(
+      LINES - 3, 2,
+      "[Up/Down] Navigate  [Enter] Copy   [/] Search   [Esc] Back  [f] Filter");
+
+  mvaddstr(LINES - 2, 2, "[F] Clear filter  [Esc/q] Back");
   refresh();
 }
 
@@ -311,8 +387,13 @@ void runCommandHistory(univecho::Database &database) {
   //   1); gpuPreferenceAsked = true;
   // }
   //
-  std::string query = prompt("Search command history");
+
+  std::string query;
+  if (!liveCommandPrompt(database, "Search command history", query)) {
+    return;
+  }
   auto records = searchWithLoading(database, query);
+  auto allRecords = records;
   int selected = 0;
 
   while (true) {
@@ -329,9 +410,27 @@ void runCommandHistory(univecho::Database &database) {
 
     switch (key) {
     case 27:
-
     case 'q':
       return;
+    case 'f': {
+      const std::string filter = prompt("Filter current results");
+      records.clear();
+
+      for (const auto &record : allRecords) {
+        if (containsInsensitive(record.command, filter) ||
+            containsInsensitive(record.sourceShell, filter)) {
+          records.push_back(record);
+        }
+      }
+
+      selected = 0;
+      break;
+    }
+
+    case 'F':
+      records = allRecords;
+      selected = 0;
+      break;
     case KEY_UP:
       if (selected > 0) {
         --selected;
@@ -361,7 +460,9 @@ void runCommandHistory(univecho::Database &database) {
       break;
 
     case '/':
-      query = prompt("Search command history/ask about a command: ");
+      if (!liveCommandPrompt(database, "Search command history", query)) {
+        break;
+      }
       try {
         records = searchWithLoading(database, query);
 
@@ -369,6 +470,7 @@ void runCommandHistory(univecho::Database &database) {
 
           records = database.searchCommands(query);
         }
+        allRecords = records;
         selected = 0;
       } catch (const std::exception &error) {
         // if ollama ain't working

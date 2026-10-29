@@ -186,6 +186,8 @@ ResourceProfile chooseResourceProfile(const ResourceSnapshot &resources) {
         std::min<std::size_t>(profile.embeddingBatchSize, 4);
 
     profile.candidateLimit = std::min<std::size_t>(profile.candidateLimit, 50);
+    // alright this is a lil intelluctally tiring thing but W, we are gonna do
+    // it yaey
   }
 
   return profile;
