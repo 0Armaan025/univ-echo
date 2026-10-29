@@ -712,10 +712,12 @@ std::vector<CommandRecord> semanticSearch(Database &database,
 
     const float lexical = lexicalScore(question, records[i].command);
 
-    // semantic >>
     const float combined = 0.75F * semantic + 0.25F * lexical;
+    // semantic >>
     auto record = records[i];
     record.semanticScore = combined;
+    record.semanticSimilarity = semantic;
+    record.lexicalScore = lexical;
     ranked.emplace_back(combined, std::move(record));
   }
 

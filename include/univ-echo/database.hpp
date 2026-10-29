@@ -28,6 +28,8 @@ struct CommandRecord {
   std::optional<std::time_t> timestamp;
 
   float semanticScore{};
+  float semanticSimilarity{};
+  float lexicalScore{};
 };
 
 class Database {

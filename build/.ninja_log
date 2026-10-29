@@ -19,3 +19,8 @@
 727	1032	1793256290720411398	CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o	84e67fe0ae61ed13
 5	2284	1793256289998402869	CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o	3cce9c3f6222b784
 2285	2361	1793256292278429802	univecho	a1c976349cb8fe64
+9	607	1793258602131767728	CMakeFiles/univecho.dir/src/core/database.cpp.o	4a4a0afd71bc6c51
+9	664	1793258602130938360	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
+664	957	1793258602785937159	CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o	84e67fe0ae61ed13
+607	2614	1793258602728937264	CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o	3cce9c3f6222b784
+2614	2694	1793258604735933664	univecho	a1c976349cb8fe64

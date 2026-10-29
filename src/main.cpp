@@ -5,6 +5,7 @@
 #include <ncurses.h>
 
 #include <algorithm>
+
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
@@ -19,6 +20,24 @@
 #include <vector>
 
 namespace {
+
+std::string terminalSafe(const std::string &input) {
+  std::string output;
+
+  constexpr char hex[] = "0123456789ABCDEF";
+
+  for (unsigned char c : input) {
+    if (c < 32 || c == 127) {
+      output += "\\x";
+      output += hex[c >> 4];
+      output += hex[c & 0x0F];
+    } else {
+      output += static_cast<char>(c);
+    }
+  }
+
+  return output;
+}
 
 bool containsInsensitive(std::string text, std::string filter) {
   const auto lowercase = [](std::string &value) {
@@ -346,12 +365,90 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
   mvaddch(bottomY, tableX + tableWidth - 1, ACS_LRCORNER);
   mvaddstr(LINES - 4, 2, "MATCH% = ranking score, not probability.");
 
-  mvaddstr(
-      LINES - 3, 2,
-      "[Up/Down] Navigate  [Enter] Copy   [/] Search   [Esc] Back  [f] Filter");
+  mvaddstr(LINES - 3, 2,
+           "[Up/Down] Navigate  [Enter] Copy   [/] Search  [d] Details  [Esc] "
+           "Back  [f] Filter");
 
   mvaddstr(LINES - 2, 2, "[F] Clear filter  [Esc/q] Back");
   refresh();
+}
+
+void showCommandDetails(const univecho::CommandRecord &record,
+                        const std::string &query) {
+  erase();
+
+  mvaddstr(1, 2, "UNIVECHO | COMMAND DETAILS");
+  mvaddstr(3, 2, "PREVIEW ONLY - this command has NOT been executed.....");
+
+  const std::string command = terminalSafe(record.command);
+  const int width = std::max(1, COLS - 4);
+  int row = 5;
+
+  mvaddstr(row++, 2, "Command: ");
+
+  if (command.empty()) {
+    mvaddstr(row++, 4, "(empty command)");
+  } else {
+    for (std::size_t pos = 0; pos < command.size() && row < LINES - 8;
+         pos += static_cast<std::size_t>(width)) {
+      mvaddnstr(row++, 4, command.c_str() + pos, width);
+    }
+  }
+
+  if (row < LINES - 6) {
+    mvprintw(row++, 2, "Shell: %s", terminalSafe(record.sourceShell).c_str());
+  }
+  if (row < LINES - 5) {
+    mvprintw(row++, 2, "Combined ranking: %.3f", record.semanticScore);
+  }
+
+  if (record.semanticSimilarity != 0.0F || record.lexicalScore != 0.0F) {
+    if (row < LINES - 4) {
+      mvprintw(row++, 2, "Semantic similairtY: %.3f",
+               record.semanticSimilarity);
+    }
+
+    if (row < LINES - 3) {
+      mvprintw(row++, 2, "Lexical relevance: %.3f", record.lexicalScore);
+    }
+
+    std::string explanation;
+
+    const auto lowercase = [](std::string value) {
+      for (char &c : value) {
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+      }
+
+      return value;
+    };
+
+    const std::string lowerQuery = lowercase(query);
+    const std::string lowerCommand = lowercase(record.command);
+
+    if (!lowerQuery.empty() &&
+        lowerCommand.find(lowerQuery) != std::string::npos) {
+      explanation = "Why: the command contains your exact query text.";
+    }
+
+    else if (record.lexicalScore > 0.0F) {
+
+      explanation = "Why: query keywords overlap with the command";
+    } else {
+      explanation = "Why: ranked primarily bvy semantic similarity.";
+    }
+
+    if (row < LINES - 2) {
+      mvaddnstr(row, 2, explanation.c_str(), width);
+    }
+  } else {
+    if (row < LINES - 2) {
+      mvaddstr(row++, 2, "No semantic breakdown is available for this result.");
+    }
+  }
+
+  mvaddstr(LINES - 1, 2, "Press any key to return");
+  refresh();
+  getch();
 }
 
 std::vector<univecho::CommandRecord>
@@ -437,6 +534,13 @@ void runCommandHistory(univecho::Database &database) {
       }
       break;
 
+    case 'd':
+      if (!records.empty()) {
+        showCommandDetails(records[static_cast<std::size_t>(selected)], query);
+      }
+
+      break;
+
     case KEY_DOWN:
       if (selected + 1 < static_cast<int>(records.size())) {
 
@@ -450,7 +554,8 @@ void runCommandHistory(univecho::Database &database) {
             records[static_cast<std::size_t>(selected)].command;
 
         if (copyToClipboard(command)) {
-          mvaddstr(LINES - 1, 2, "Command copied to clipboard!");
+          mvaddstr(LINES - 1, 2,
+                   "Copied. Review the command before pasting or running it.");
         } else {
           mvaddstr(LINES - 1, 2, "Clipboard copy failed.");
         }
