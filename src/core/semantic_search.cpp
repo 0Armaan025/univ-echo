@@ -1,4 +1,5 @@
 #include "../../include/univ-echo/semantic_search.hpp"
+#include "../../include/univ-echo/resource_manager.hpp"
 
 #include <curl/curl.h>
 #include <ios>
@@ -28,7 +29,7 @@ namespace fs = std::filesystem;
 
 // constexpr const char *MODEL = "nomic-embed-text";
 constexpr const char *MODEL = "qwen3-embedding:0.6b";
-constexpr std::size_t BATCH_SIZE = 64;
+// constexpr std::size_t BATCH_SIZE = 64;
 constexpr std::size_t RESULT_LIMIT = 100;
 
 size_t receiveResponse(char *data, size_t size, size_t count, void *userData) {
@@ -451,7 +452,10 @@ EmbeddingCache &embeddingCache() {
   return cache;
 }
 
-std::vector<Embedding> embedCache(const std::vector<std::string> &texts) {
+std::vector<Embedding> embedCache(const std::vector<std::string> &texts,
+                                  std::size_t batchSize) {
+
+  batchSize = std::max<std::size_t>(1, batchSize);
   auto &cache = embeddingCache();
   cache.load();
 
@@ -471,8 +475,8 @@ std::vector<Embedding> embedCache(const std::vector<std::string> &texts) {
     }
   }
 
-  for (std::size_t start = 0; start < missing.size(); start += BATCH_SIZE) {
-    const std::size_t end = std::min(start + BATCH_SIZE, missing.size());
+  for (std::size_t start = 0; start < missing.size(); start += batchSize) {
+    const std::size_t end = std::min(start + batchSize, missing.size());
 
     std::vector<std::string> batch(
         missing.begin() + static_cast<std::ptrdiff_t>(start),
@@ -593,6 +597,26 @@ std::vector<CommandRecord> semanticSearch(Database &database,
   if (question.empty()) {
     return {};
   }
+  //
+  // const auto allRecords = database.listCommands();
+  //
+  // if (allRecords.empty()) {
+  //   return {};
+  // }
+  //
+  const ResourceSnapshot resources = detectResources();
+  const ResourceProfile profile = chooseResourceProfile(resources);
+
+  std::cerr << "[UNIVECHO RESOURCES] CPU threads: "
+            << resources.logicalCpuThreads << " | RAM available: "
+            << resources.availableRamBytes / (1024ULL * 1024) << " MiB"
+            << " | batch: " << profile.embeddingBatchSize
+            << " | candidates: " << profile.candidateLimit
+            << " | memory pressure: "
+            << (resources.memoryPressure ? "yes" : "no") << "\n";
+
+  const std::size_t candidateLimit =
+      std::max<std::size_t>(1, profile.candidateLimit);
 
   const auto allRecords = database.listCommands();
 
@@ -600,9 +624,9 @@ std::vector<CommandRecord> semanticSearch(Database &database,
     return {};
   }
 
-  constexpr std::size_t CANDIDATE_LIMIT = 400;
+  // constexpr std::size_t CANDIDATE_LIMIT = 400;
   constexpr std::size_t RECENT_LIMIT = 200;
-  constexpr std::size_t LEXICAL_LIMIT = 300;
+  // constexpr std::size_t LEXICAL_LIMIT = 300;
 
   std::vector<std::pair<float, std::size_t>> lexicalRanked;
 
@@ -615,7 +639,7 @@ std::vector<CommandRecord> semanticSearch(Database &database,
 
   // i see
   const std::size_t lexicalCount =
-      std::min(LEXICAL_LIMIT, lexicalRanked.size());
+      std::min({std::size_t{300}, lexicalRanked.size(), candidateLimit});
 
   std::partial_sort(
       lexicalRanked.begin(),
@@ -624,13 +648,13 @@ std::vector<CommandRecord> semanticSearch(Database &database,
       [](const auto &a, const auto &b) { return a.first > b.first; });
   std::vector<CommandRecord> records;
 
-  records.reserve(std::min(CANDIDATE_LIMIT, allRecords.size()));
+  records.reserve(std::min(candidateLimit, allRecords.size()));
 
   std::unordered_set<std::size_t> selected;
-  selected.reserve(CANDIDATE_LIMIT);
+  selected.reserve(candidateLimit);
 
   auto addCandidate = [&](std::size_t index) {
-    if (records.size() < CANDIDATE_LIMIT && selected.insert(index).second) {
+    if (records.size() < candidateLimit && selected.insert(index).second) {
       records.push_back(allRecords[index]);
     }
   };
@@ -646,23 +670,24 @@ std::vector<CommandRecord> semanticSearch(Database &database,
   }
 
   const std::size_t stride =
-      std::max<std::size_t>(1, allRecords.size() / CANDIDATE_LIMIT);
+      std::max<std::size_t>(1, allRecords.size() / candidateLimit);
 
   for (std::size_t i = 0;
-       i < allRecords.size() && records.size() < CANDIDATE_LIMIT; i += stride) {
+       i < allRecords.size() && records.size() < candidateLimit; i += stride) {
     addCandidate(i);
   }
 
   // uhhh
   for (std::size_t i = 0;
-       i < allRecords.size() && records.size() < CANDIDATE_LIMIT; ++i) {
+       i < allRecords.size() && records.size() < candidateLimit; ++i) {
     addCandidate(i);
   }
 
   const auto queryVectors =
       embedCache({"Instruct: retrieve the most relevant shell command for "
                   "user's request \nQuery:  " +
-                  sanitizeUtf8(question)});
+                  sanitizeUtf8(question)},
+                 profile.embeddingBatchSize);
 
   const auto &queryVector = queryVectors.front();
 
@@ -676,7 +701,8 @@ std::vector<CommandRecord> semanticSearch(Database &database,
     documents.push_back(sanitizeUtf8(record.command));
   }
 
-  const auto documentVectors = embedCache(documents);
+  const auto documentVectors =
+      embedCache(documents, profile.embeddingBatchSize);
 
   for (std::size_t i = 0; i < documentVectors.size(); ++i) {
 

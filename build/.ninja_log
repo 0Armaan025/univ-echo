@@ -1,11 +1,13 @@
 # ninja log v7
 2	421	1793205777956210092	CMakeFiles/univecho.dir/src/core/database.cpp.o	4a4a0afd71bc6c51
 1	473	1793210019491929979	CMakeFiles/univecho.dir/src/main.cpp.o	a0e5c3af569e5182
-2231	2304	1793211763044604818	univecho	83421a03acef0e1
-3	67	1793248625818647686	build.ninja	a345f342d42e8b05
-3	67	1793248625818647686	/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/cmake_install.cmake	a345f342d42e8b05
-1	427	1793038733054109551	CMakeFiles/univecho.dir/src/core/command_history.cpp.o	ce4b6be6a7c1fafa
-2	2231	1793211760815496358	CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o	3cce9c3f6222b784
-6	303	1793248625840866015	CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o	84e67fe0ae61ed13
-6	2108	1793248625839647858	CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o	3cce9c3f6222b784
 2108	2183	1793248627941665037	univecho	a1c976349cb8fe64
+3	67	1793249105215228183	build.ninja	a345f342d42e8b05
+3	67	1793249105214228176	/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/cmake_install.cmake	a345f342d42e8b05
+1	427	1793038733054109551	CMakeFiles/univecho.dir/src/core/command_history.cpp.o	ce4b6be6a7c1fafa
+6	2108	1793248625839647858	CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o	3cce9c3f6222b784
+6	303	1793248625840866015	CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o	84e67fe0ae61ed13
+1	1972	1793249105246228398	CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o	3cce9c3f6222b784
+1972	2035	1793249107217242093	univecho	a1c976349cb8fe64
+3	2097	1793249334873788968	CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o	3cce9c3f6222b784
+2097	2166	1793249336967802920	univecho	a1c976349cb8fe64
