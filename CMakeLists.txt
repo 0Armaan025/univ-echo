@@ -20,6 +20,7 @@ add_executable(univecho
   src/core/database.cpp
   src/core/command_history.cpp
   src/core/semantic_search.cpp
+  src/core/resource_manager.cpp
 )
 
 target_include_directories(univecho PRIVATE

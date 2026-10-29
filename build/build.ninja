@@ -76,6 +76,14 @@ build CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o: CXX_COMPILER__univ
   OBJECT_FILE_DIR = CMakeFiles/univecho.dir/src/core
   TARGET_SUPPORT_DIR = CMakeFiles/univecho.dir
 
+build CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o: CXX_COMPILER__univecho_unscanned_ /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/resource_manager.cpp || cmake_object_order_depends_target_univecho
+  DEP_FILE = CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o.d
+  FLAGS = -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
+  INCLUDES = -I/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/include
+  OBJECT_DIR = CMakeFiles/univecho.dir
+  OBJECT_FILE_DIR = CMakeFiles/univecho.dir/src/core
+  TARGET_SUPPORT_DIR = CMakeFiles/univecho.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target univecho
@@ -84,7 +92,7 @@ build CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o: CXX_COMPILER__univ
 #############################################
 # Link the executable univecho
 
-build univecho: CXX_EXECUTABLE_LINKER__univecho_ CMakeFiles/univecho.dir/src/main.cpp.o CMakeFiles/univecho.dir/src/core/database.cpp.o CMakeFiles/univecho.dir/src/core/command_history.cpp.o CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o | /usr/lib/libsqlite3.so /usr/lib/libcurl.so /usr/lib/libncursesw.so /usr/lib/libcurl.so
+build univecho: CXX_EXECUTABLE_LINKER__univecho_ CMakeFiles/univecho.dir/src/main.cpp.o CMakeFiles/univecho.dir/src/core/database.cpp.o CMakeFiles/univecho.dir/src/core/command_history.cpp.o CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o | /usr/lib/libsqlite3.so /usr/lib/libcurl.so /usr/lib/libncursesw.so /usr/lib/libcurl.so
   DEP_FILE = CMakeFiles/univecho.dir/link.d
   LINK_FLAGS = -Wl,--dependency-file=CMakeFiles/univecho.dir/link.d
   LINK_LIBRARIES = /usr/lib/libsqlite3.so  /usr/lib/libcurl.so  /usr/lib/libncursesw.so  /usr/lib/libcurl.so

@@ -306,7 +306,6 @@ public:
 
     char magic[8]{};
     in.read(magic, sizeof(magic));
-    const char expected[8] = {'U', 'E', 'C', 'H', 'C', '0', '0', '1'};
     const char version1[8] = {'U', 'E', 'C', 'H', 'C', '0', '0', '1'};
     const char version2[8] = {'U', 'E', 'C', 'H', 'C', '0', '0', '2'};
 
@@ -614,6 +613,7 @@ std::vector<CommandRecord> semanticSearch(Database &database,
                                i);
   }
 
+  // i see
   const std::size_t lexicalCount =
       std::min(LEXICAL_LIMIT, lexicalRanked.size());
 
