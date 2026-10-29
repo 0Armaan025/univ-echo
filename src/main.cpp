@@ -290,6 +290,27 @@ searchWithLoading(univecho::Database &database, const std::string &query) {
 }
 
 void runCommandHistory(univecho::Database &database) {
+  static bool gpuPreferenceAsked = false;
+
+  // if (!gpuPreferenceAsked) {
+  //   erase();
+  //   mvaddstr(2, 2, "UNIVECHO | GPU ACCELERATION");
+  //   mvaddstr(4, 2, "Allow Ollama to use GPU acceleration when supported?");
+  //   mvaddstr(6, 2, "[y] Yes   [n] No");
+  //   mvaddstr(8, 2, "This preference applies to this UNIVECHO session.");
+  //   refresh();
+  //
+  //   int choice;
+  //
+  //   do {
+  //     choice = getch();
+  //   } while (choice != 'y' && choice != 'Y' && choice != 'n' && choice !=
+  //   'N');
+  //
+  //   setenv("UNIVECHO_USE_GPU", (choice == 'y' || choice == 'Y') ? "1" : "0",
+  //   1); gpuPreferenceAsked = true;
+  // }
+  //
   std::string query = prompt("Search command history");
   auto records = searchWithLoading(database, query);
   int selected = 0;

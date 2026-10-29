@@ -168,9 +168,10 @@ std::vector<Embedding> embedRemote(const std::vector<std::string> &texts) {
     throw std::runtime_error("couldn't initalize ollama http client");
   }
 
-  const json request = {
-      {"model", MODEL}, {"input", texts}, {"keep_alive", "5m"}};
-
+  json request = {{"model", MODEL}, {"input", texts}, {"keep_alive", "5m"}};
+  if (const char *useGpu = std::getenv("UNIVECHO_USE_GPU")) {
+    request["options"] = {{"num_gpu", (std::string(useGpu) == "1") ? -1 : 0}};
+  }
   for (std::size_t i = 0; i < texts.size(); ++i) {
     if (!isValidUtf8(texts[i])) {
       std::string message = "Invalid UTF-8 at batch index " +
@@ -607,14 +608,14 @@ std::vector<CommandRecord> semanticSearch(Database &database,
   const ResourceSnapshot resources = detectResources();
   const ResourceProfile profile = chooseResourceProfile(resources);
 
-  std::cerr << "[UNIVECHO RESOURCES] CPU threads: "
-            << resources.logicalCpuThreads << " | RAM available: "
-            << resources.availableRamBytes / (1024ULL * 1024) << " MiB"
-            << " | batch: " << profile.embeddingBatchSize
-            << " | candidates: " << profile.candidateLimit
-            << " | memory pressure: "
-            << (resources.memoryPressure ? "yes" : "no") << "\n";
-
+  // std::cerr << "[UNIVECHO RESOURCES] CPU threads: "
+  //           << resources.logicalCpuThreads << " | RAM available: "
+  //           << resources.availableRamBytes / (1024ULL * 1024) << " MiB"
+  //           << " | batch: " << profile.embeddingBatchSize
+  //           << " | candidates: " << profile.candidateLimit
+  //           << " | memory pressure: "
+  //           << (resources.memoryPressure ? "yes" : "no") << "\n";
+  //
   const std::size_t candidateLimit =
       std::max<std::size_t>(1, profile.candidateLimit);
 
