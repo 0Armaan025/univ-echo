@@ -329,7 +329,8 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
         static_cast<int>(std::clamp(record.semanticScore, 0.0F, 1.0F) * 100.0F);
 
     mvaddnstr(row, timeX, timestampText.c_str(), timeWidth);
-    mvaddnstr(row, commandX, record.command.c_str(), commandWidth);
+    const std::string safeCommand = terminalSafe(record.command);
+    mvaddnstr(row, commandX, safeCommand.c_str(), commandWidth);
     mvaddnstr(row, shellX, record.sourceShell.c_str(), shellWidth);
     if (record.semanticScore > 0.0F) {
 
@@ -375,44 +376,48 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
 
 void showCommandDetails(const univecho::CommandRecord &record,
                         const std::string &query) {
-  erase();
 
-  mvaddstr(1, 2, "UNIVECHO | COMMAND DETAILS");
-  mvaddstr(3, 2, "PREVIEW ONLY - this command has NOT been executed.....");
+  std::vector<std::string> lines;
 
+  lines.emplace_back("UNIVECHO | COMMAND DETAILS");
+  lines.emplace_back("");
+  lines.emplace_back("PREVIEW ONLY - command has NOT been executed.");
+  lines.emplace_back("");
+
+  lines.emplace_back("Command:");
   const std::string command = terminalSafe(record.command);
-  const int width = std::max(1, COLS - 4);
-  int row = 5;
-
-  mvaddstr(row++, 2, "Command: ");
+  const std::size_t width = static_cast<std::size_t>(std::max(1, COLS - 6));
 
   if (command.empty()) {
-    mvaddstr(row++, 4, "(empty command)");
+    lines.emplace_back("   (empty command)");
+
   } else {
-    for (std::size_t pos = 0; pos < command.size() && row < LINES - 8;
-         pos += static_cast<std::size_t>(width)) {
-      mvaddnstr(row++, 4, command.c_str() + pos, width);
+    for (std::size_t pos = 0; pos < command.size(); pos += width) {
+      lines.push_back(" " + command.substr(pos, width));
     }
   }
 
-  if (row < LINES - 6) {
-    mvprintw(row++, 2, "Shell: %s", terminalSafe(record.sourceShell).c_str());
-  }
-  if (row < LINES - 5) {
-    mvprintw(row++, 2, "Combined ranking: %.3f", record.semanticScore);
+  lines.emplace_back("");
+  lines.emplace_back("Shell: " + (record.sourceShell.empty()
+                                      ? std::string("Unknown")
+                                      : terminalSafe(record.sourceShell)));
+
+  if (record.timestamp) {
+    std::tm localTime{};
+
+    if (localtime_r(&*record.timestamp, &localTime)) {
+      char buffer[32]{};
+
+      if (std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S",
+                        &localTime) > 0) {
+        lines.emplace_back(std::string("Timestamp: ") + buffer);
+      }
+    }
   }
 
   if (record.semanticSimilarity != 0.0F || record.lexicalScore != 0.0F) {
-    if (row < LINES - 4) {
-      mvprintw(row++, 2, "Semantic similairtY: %.3f",
-               record.semanticSimilarity);
-    }
-
-    if (row < LINES - 3) {
-      mvprintw(row++, 2, "Lexical relevance: %.3f", record.lexicalScore);
-    }
-
-    std::string explanation;
+    lines.emplace_back("");
+    lines.emplace_back("Match explanation:");
 
     const auto lowercase = [](std::string value) {
       for (char &c : value) {
@@ -427,28 +432,66 @@ void showCommandDetails(const univecho::CommandRecord &record,
 
     if (!lowerQuery.empty() &&
         lowerCommand.find(lowerQuery) != std::string::npos) {
-      explanation = "Why: the command contains your exact query text.";
-    }
 
-    else if (record.lexicalScore > 0.0F) {
-
-      explanation = "Why: query keywords overlap with the command";
+      lines.emplace_back("  The command contains your query text.");
+    } else if (record.lexicalScore > 0.0F) {
+      lines.emplace_back("  Some query keywords match the command.");
     } else {
-      explanation = "Why: ranked primarily bvy semantic similarity.";
+      lines.emplace_back(
+          "  The reuslt was ranked mainly by semantic similarity.");
     }
 
-    if (row < LINES - 2) {
-      mvaddnstr(row, 2, explanation.c_str(), width);
-    }
   } else {
-    if (row < LINES - 2) {
-      mvaddstr(row++, 2, "No semantic breakdown is available for this result.");
-    }
+    lines.emplace_back("");
+    lines.emplace_back("no match breakdown is available for this result.");
   }
 
-  mvaddstr(LINES - 1, 2, "Press any key to return");
-  refresh();
-  getch();
+  lines.emplace_back("");
+  lines.emplace_back("Command preview only. Copying doesn't execute it!!!");
+
+  int scroll = 0;
+
+  while (true) {
+    erase();
+
+    const int contentRows = std::max(1, LINES - 3);
+    const int maxScroll =
+        std::max(0, static_cast<int>(lines.size()) - contentRows);
+
+    scroll = std::clamp(scroll, 0, maxScroll);
+
+    for (int i = 0;
+         i < contentRows && scroll + i < static_cast<int>(lines.size()); ++i) {
+      const auto &line = lines[static_cast<std::size_t>(scroll + i)];
+      mvaddnstr(i, 2, line.c_str(), std::max(1, COLS - 4));
+    }
+
+    mvaddstr(LINES - 2, 2,
+             "[Up/Down] Scroll   [c] Copy command    [Esc/q] Back");
+
+    refresh();
+
+    const int key = getch();
+
+    if (key == 27 || key == '\n' || key == KEY_ENTER) {
+      break;
+    }
+
+    if (key == KEY_UP && scroll > 0) {
+      --scroll;
+    } else if (key == KEY_DOWN && scroll < maxScroll) {
+      ++scroll;
+    } else if (key == 'c') {
+      const bool copied = copyToClipboard(record.command);
+
+      mvaddstr(LINES - 1, 2,
+               copied ? "Copied. Review before running."
+                      : "Copy failed. Is wl-copy installed?");
+
+      refresh();
+      getch();
+    }
+  }
 }
 
 std::vector<univecho::CommandRecord>
@@ -632,6 +675,7 @@ void runTui(univecho::Database &database) {
         break;
       case 'c':
         runCommandHistory(database);
+        break;
       case KEY_UP:
         if (selected > 0)
           --selected;
