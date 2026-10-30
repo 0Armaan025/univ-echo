@@ -51,7 +51,7 @@ else()
 endif()
 
 target_link_libraries(univecho PRIVATE
-    SQLite3::SQLite3
+    SQLite::SQLite3
     CURL::libcurl
     nlohmann_json::nlohmann_json
 )
