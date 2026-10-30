@@ -876,7 +876,7 @@ int main(int argc, char *argv[]) {
           const std::time_t timestamp = *record.timestamp;
           std::tm localTime{};
 
-          if (localtime_r(&timestamp, &localTime)) {
+          if (getLocalTime(timestamp, localTime)) {
             cout << put_time(&localTime, "%Y-%m-%d %H:%M:%S");
           } else {
           }
