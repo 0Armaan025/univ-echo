@@ -2743,7 +2743,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/usr/lib"
+			"value" : "alt-svc;AsynchDNS;brotli;GSS-API;HSTS;HTTP2;HTTP3;HTTPS-proxy;IDN;IPv6;Kerberos;Largefile;libz;PSL;SPNEGO;SSL;threadsafe;UnixSockets;zstd"
 		},
 		{
 			"name" : "univ_echo_BINARY_DIR",

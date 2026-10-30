@@ -1,6 +1,6 @@
 {
 	"abstract" : true,
-	"backtrace" : 5,
+	"backtrace" : 4,
 	"backtraceGraph" : 
 	{
 		"commands" : 
@@ -8,7 +8,6 @@
 			"add_library",
 			"_pkg_create_imp_target",
 			"_pkg_recalculate",
-			"_pkg_check_modules_internal",
 			"pkg_check_modules",
 			"set_property"
 		],
@@ -23,40 +22,34 @@
 				"file" : 1
 			},
 			{
-				"command" : 4,
+				"command" : 3,
 				"file" : 1,
 				"line" : 46,
 				"parent" : 0
 			},
 			{
-				"command" : 3,
-				"file" : 0,
-				"line" : 1166,
-				"parent" : 1
-			},
-			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 1149,
-				"parent" : 2
+				"line" : 1174,
+				"parent" : 1
 			},
 			{
 				"command" : 1,
 				"file" : 0,
 				"line" : 813,
-				"parent" : 3
+				"parent" : 2
 			},
 			{
 				"command" : 0,
 				"file" : 0,
 				"line" : 787,
-				"parent" : 4
+				"parent" : 3
 			},
 			{
-				"command" : 5,
+				"command" : 4,
 				"file" : 0,
 				"line" : 794,
-				"parent" : 4
+				"parent" : 3
 			}
 		]
 	},
@@ -70,7 +63,7 @@
 	"interfaceLinkLibraries" : 
 	[
 		{
-			"backtrace" : 6,
+			"backtrace" : 5,
 			"fragment" : "/usr/lib/libncursesw.so"
 		}
 	],

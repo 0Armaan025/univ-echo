@@ -541,5 +541,5 @@ pkgcfg_lib_NCURSESW_ncursesw-ADVANCED:INTERNAL=1
 pkgcfg_lib_PC_CURL_curl-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_PC_SQLite3_sqlite3
 pkgcfg_lib_PC_SQLite3_sqlite3-ADVANCED:INTERNAL=1
-prefix_result:INTERNAL=/usr/lib
+prefix_result:INTERNAL=alt-svc;AsynchDNS;brotli;GSS-API;HSTS;HTTP2;HTTP3;HTTPS-proxy;IDN;IPv6;Kerberos;Largefile;libz;PSL;SPNEGO;SSL;threadsafe;UnixSockets;zstd
 
