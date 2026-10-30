@@ -23,6 +23,14 @@ class CommandHistoryImporter {
 public:
   static std::vector<CommandHistoryEntry>
   parseZsh(const std::filesystem::path &path);
+  static std::vector<CommandHistoryEntry>
+  parseBash(const std::filesystem::path &path);
+
+  static std::vector<CommandHistoryEntry>
+  parsePowerShell(const std::filesystem::path &path);
+
+  static std::vector<CommandHistoryEntry>
+  parseCmd(const std::filesystem::path &path);
 };
 
 } // namespace univecho

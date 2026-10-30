@@ -768,38 +768,58 @@ int main(int argc, char *argv[]) {
     const std::string command = argv[1];
 
     if (command == "import-history") {
-      const char *historyEnv = std::getenv("HISTFILE");
+      std::string shell = "zsh";
+      std::filesystem::path path;
 
-      std::filesystem::path historyPath;
-
-      if (historyEnv && *historyEnv) {
-        historyPath = historyEnv;
-      } else {
-        const char *home = std::getenv("HOME");
-
-        if (!home || !*home) {
-          std::cerr << "UNIVECHO: home is not set \n";
+      if (argc == 2) {
+        // Default: import Zsh history.
+        if (const char *histfile = std::getenv("HISTFILE")) {
+          path = histfile;
+        } else if (const char *home = std::getenv("HOME")) {
+          path = std::filesystem::path(home) / ".zsh_history";
+        } else {
+          std::cerr << "Cannot locate Zsh history: HOME is not set.\n";
           return 1;
         }
-
-        historyPath = std::filesystem::path(home) / ".config/zsh/.zsh_history";
+      } else if (argc == 5 && std::string(argv[2]) == "--shell") {
+        shell = argv[3];
+        path = argv[4];
+      } else {
+        std::cerr << "Usage:\n"
+                  << "  univecho import-history\n"
+                  << "  univecho import-history --shell "
+                  << "zsh|bash|powershell|cmd FILE\n";
+        return 2;
       }
 
       try {
-        auto entries = univecho::CommandHistoryImporter::parseZsh(historyPath);
+        std::vector<univecho::CommandHistoryEntry> entries;
 
+        if (shell == "zsh")
+          entries = univecho::CommandHistoryImporter::parseZsh(path);
+        else if (shell == "bash")
+          entries = univecho::CommandHistoryImporter::parseBash(path);
+        else if (shell == "powershell")
+          entries = univecho::CommandHistoryImporter::parsePowerShell(path);
+        else if (shell == "cmd")
+          entries = univecho::CommandHistoryImporter::parseCmd(path);
+        else {
+          std::cerr << "Unsupported shell: " << shell << '\n';
+          return 2;
+        }
+
+        const auto parsed = entries.size();
         database.importCommands(entries);
 
-        cout << "Imported: " << entries.size()
-             << " parsed history entries from Zsh." << endl;
+        std::cout << "Imported " << parsed << " entries from " << shell
+                  << ".\n";
       } catch (const std::exception &error) {
-        std::cerr << "UNIVECHO: " << error.what() << endl;
+        std::cerr << "UNIVECHO: " << error.what() << '\n';
         return 1;
       }
 
       return 0;
     }
-
     if (command == "commands") {
 
       if (argc < 3) {
