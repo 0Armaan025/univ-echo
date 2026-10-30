@@ -32,6 +32,13 @@ jobs:
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
+      - name: Clean stale CMake build directory
+        run: rm -rf build 
+        
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+
       - name: Build
         run: cmake --build build --parallel 2
 
