@@ -6,11 +6,12 @@
 		"commands" : 
 		[
 			"add_library",
-			"find_package"
+			"find_package",
+			"set_property"
 		],
 		"files" : 
 		[
-			"/usr/share/cmake/Modules/FindSQLite3.cmake",
+			"/usr/share/cmake/Modules/FindCURL.cmake",
 			"CMakeLists.txt"
 		],
 		"nodes" : 
@@ -21,7 +22,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 15,
+				"line" : 10,
 				"parent" : 0
 			},
 			{
@@ -31,7 +32,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 117,
+				"line" : 301,
+				"parent" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 332,
 				"parent" : 2
 			}
 		]
@@ -41,10 +48,17 @@
 		"major" : 2,
 		"minor" : 11
 	},
-	"id" : "SQLite3::SQLite3::@6890427a1f51a3e7e1df",
+	"id" : "CURL::libcurl::@6890427a1f51a3e7e1df",
 	"imported" : true,
+	"interfaceLinkLibraries" : 
+	[
+		{
+			"backtrace" : 4,
+			"fragment" : "/usr/lib/libcurl.so"
+		}
+	],
 	"local" : true,
-	"name" : "SQLite3::SQLite3",
+	"name" : "CURL::libcurl",
 	"paths" : 
 	{
 		"build" : ".",

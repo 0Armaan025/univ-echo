@@ -43,7 +43,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : ""
+			"value" : "Release"
 		},
 		{
 			"name" : "CMAKE_CACHEFILE_DIR",
@@ -1264,6 +1264,18 @@
 			],
 			"type" : "INTERNAL",
 			"value" : "[/usr/lib/libsqlite3.so][/usr/include][v3.54.0()]"
+		},
+		{
+			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_nlohmann_json",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Details about finding nlohmann_json"
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "[/usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake][v3.12.0()]"
 		},
 		{
 			"name" : "NCURSESW_CFLAGS",
@@ -2599,7 +2611,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "REQUIRED;REQUIRED;IMPORTED_TARGET;ncursesw"
+			"value" : "REQUIRED;IMPORTED_TARGET;ncursesw"
 		},
 		{
 			"name" : "__pkg_config_arguments_PC_CURL",
@@ -2662,6 +2674,18 @@
 			"value" : "1"
 		},
 		{
+			"name" : "nlohmann_json_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for nlohmann_json."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/share/cmake/nlohmann_json"
+		},
+		{
 			"name" : "pkgcfg_lib_NCURSESW_ncursesw",
 			"properties" : 
 			[
@@ -2719,7 +2743,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "alt-svc;AsynchDNS;brotli;GSS-API;HSTS;HTTP2;HTTP3;HTTPS-proxy;IDN;IPv6;Kerberos;Largefile;libz;PSL;SPNEGO;SSL;threadsafe;UnixSockets;zstd"
+			"value" : "/usr/lib"
 		},
 		{
 			"name" : "univ_echo_BINARY_DIR",

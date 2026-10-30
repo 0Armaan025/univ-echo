@@ -2,7 +2,11 @@
 #include "../include/univ-echo/database.hpp"
 #include "../include/univ-echo/semantic_search.hpp"
 
+#ifdef _WIN32
+#include <curses.h>
+#else
 #include <ncurses.h>
+#endif
 
 #include <algorithm>
 
@@ -20,6 +24,15 @@
 #include <vector>
 
 namespace {
+
+bool getLocalTime(std::time_t timestamp, std::tm &result) {
+#ifdef _WIN32
+  return localtime_s(&result, &timestamp) == 0;
+
+#else
+  return localtime_r(&timestamp, &result) != nullptr;
+#endif
+}
 
 std::string terminalSafe(const std::string &input) {
   std::string output;
@@ -53,18 +66,27 @@ bool containsInsensitive(std::string text, std::string filter) {
 }
 
 std::string databasePath() {
-  const char *home = std::getenv("HOME");
+  std::filesystem::path directory;
 
-  if (!home || !*home) {
-    throw std::runtime_error("HOME env variable is missing!!!!");
+#ifdef _WIN32
+  if (const char *appData = std::getenv("APPDATA"); appData && *appData) {
+    directory = std::filesystem::path(appData) / "univecho";
+  } else {
+    throw std::runtime_error("APPDATA environment variable is missing");
   }
-
-  const auto directory = std::filesystem::path(home) / ".local/share/univecho";
+#else
+  if (const char *xdg = std::getenv("XDG_DATA_HOME"); xdg && *xdg) {
+    directory = std::filesystem::path(xdg) / "univecho";
+  } else if (const char *home = std::getenv("HOME"); home && *home) {
+    directory = std::filesystem::path(home) / ".local" / "share" / "univecho";
+  } else {
+    throw std::runtime_error("Cannot locate user data directory");
+  }
+#endif
 
   std::filesystem::create_directories(directory);
   return (directory / "univecho.db").string();
 }
-
 std::string joinArgs(int argc, char *argv[], int start) {
   std::string result;
 
@@ -149,7 +171,11 @@ bool liveCommandPrompt(univecho::Database &database, const std::string &label,
 }
 
 bool copyToClipboard(const std::string &command) {
+#ifdef _WIN32
+  FILE *pipe = _popen("clip", "w");
+#else
   FILE *pipe = popen("wl-copy", "w");
+#endif
 
   if (!pipe) {
     return false;
@@ -158,7 +184,14 @@ bool copyToClipboard(const std::string &command) {
   const bool written =
       std::fwrite(command.data(), 1, command.size(), pipe) == command.size();
 
-  return pclose(pipe) == 0 && written;
+#ifdef _WIN32
+  const int result = _pclose(pipe);
+#else
+  const int result = pclose(pipe);
+#endif
+
+  return result == 0 && written;
+  // alright
 }
 
 void showMemory(const univecho::Memory &memory) {
@@ -314,7 +347,7 @@ void drawCommands(const std::vector<univecho::CommandRecord> &records,
       const std::time_t timestamp = *record.timestamp;
       std::tm localTime{};
 
-      if (localtime_r(&timestamp, &localTime)) {
+      if (getLocalTime(timestamp, localTime)) {
         char buffer[32]{};
 
         if (std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S",
@@ -405,7 +438,7 @@ void showCommandDetails(const univecho::CommandRecord &record,
   if (record.timestamp) {
     std::tm localTime{};
 
-    if (localtime_r(&*record.timestamp, &localTime)) {
+    if (getLocalTime(*record.timestamp, localTime)) {
       char buffer[32]{};
 
       if (std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S",
@@ -781,6 +814,7 @@ int main(int argc, char *argv[]) {
           std::cerr << "Cannot locate Zsh history: HOME is not set.\n";
           return 1;
         }
+        // alright
       } else if (argc == 5 && std::string(argv[2]) == "--shell") {
         shell = argv[3];
         path = argv[4];

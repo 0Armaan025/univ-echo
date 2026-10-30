@@ -7,29 +7,43 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "CURL::libcurl::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-CURL__libcurl-0336b28c738568a7815e.json",
+					"jsonFile" : "target-CURL__libcurl-Release-81ca0e83e0ea4e44f873.json",
 					"name" : "CURL::libcurl",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "PkgConfig::NCURSESW::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-PkgConfig__NCURSESW-fe00ab498bcbddb31bcd.json",
+					"jsonFile" : "target-PkgConfig__NCURSESW-Release-20e44d0d93c02b2cbb2f.json",
 					"name" : "PkgConfig::NCURSESW",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "SQLite3::SQLite3::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-SQLite3__SQLite3-0a02d0f601c71307e50c.json",
+					"jsonFile" : "target-SQLite3__SQLite3-Release-eb455fd9b415f98241ad.json",
 					"name" : "SQLite3::SQLite3",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "SQLite::SQLite3::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-SQLite__SQLite3-f0ac108513bb28f755a8.json",
+					"jsonFile" : "target-SQLite__SQLite3-Release-b74b6e8007d92bd905c4.json",
 					"name" : "SQLite::SQLite3",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "nlohmann_json::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-nlohmann_json-Release-94b0648828249bb758a5.json",
+					"name" : "nlohmann_json",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "nlohmann_json::nlohmann_json::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-nlohmann_json__nlohmann_json-Release-121f04f0360a5116a251.json",
+					"name" : "nlohmann_json::nlohmann_json",
 					"projectIndex" : 0
 				}
 			],
@@ -41,10 +55,12 @@
 						0,
 						1,
 						2,
-						3
+						3,
+						4,
+						5
 					],
 					"build" : ".",
-					"jsonFile" : "directory-.-b23a0b23c080df4d29ba.json",
+					"jsonFile" : "directory-.-Release-b23a0b23c080df4d29ba.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.20"
@@ -57,7 +73,7 @@
 					]
 				}
 			],
-			"name" : "",
+			"name" : "Release",
 			"projects" : 
 			[
 				{
@@ -66,7 +82,9 @@
 						0,
 						1,
 						2,
-						3
+						3,
+						4,
+						5
 					],
 					"directoryIndexes" : 
 					[
@@ -84,7 +102,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "univecho::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-univecho-05a528686e4bbfa144d3.json",
+					"jsonFile" : "target-univecho-Release-3a06efed060fa00d5618.json",
 					"name" : "univecho",
 					"projectIndex" : 0
 				}

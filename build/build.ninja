@@ -12,7 +12,7 @@
 
 # =============================================================================
 # Project: univ_echo
-# Configurations: 
+# Configurations: Release
 # =============================================================================
 
 #############################################
@@ -20,6 +20,11 @@
 
 ninja_required_version = 1.5
 
+
+#############################################
+# Set configuration variable for custom commands.
+
+CONFIGURATION = Release
 # =============================================================================
 # Include auxiliary files.
 
@@ -44,41 +49,46 @@ cmake_ninja_workdir = /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/b
 
 build cmake_object_order_depends_target_univecho: phony || .
 
-build CMakeFiles/univecho.dir/src/main.cpp.o: CXX_COMPILER__univecho_unscanned_ /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/main.cpp || cmake_object_order_depends_target_univecho
+build CMakeFiles/univecho.dir/src/main.cpp.o: CXX_COMPILER__univecho_unscanned_Release /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/main.cpp || cmake_object_order_depends_target_univecho
+  CONFIG = Release
   DEP_FILE = CMakeFiles/univecho.dir/src/main.cpp.o.d
-  FLAGS = -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
+  FLAGS = -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
   INCLUDES = -I/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/include
   OBJECT_DIR = CMakeFiles/univecho.dir
   OBJECT_FILE_DIR = CMakeFiles/univecho.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/univecho.dir
 
-build CMakeFiles/univecho.dir/src/core/database.cpp.o: CXX_COMPILER__univecho_unscanned_ /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/database.cpp || cmake_object_order_depends_target_univecho
+build CMakeFiles/univecho.dir/src/core/database.cpp.o: CXX_COMPILER__univecho_unscanned_Release /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/database.cpp || cmake_object_order_depends_target_univecho
+  CONFIG = Release
   DEP_FILE = CMakeFiles/univecho.dir/src/core/database.cpp.o.d
-  FLAGS = -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
+  FLAGS = -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
   INCLUDES = -I/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/include
   OBJECT_DIR = CMakeFiles/univecho.dir
   OBJECT_FILE_DIR = CMakeFiles/univecho.dir/src/core
   TARGET_SUPPORT_DIR = CMakeFiles/univecho.dir
 
-build CMakeFiles/univecho.dir/src/core/command_history.cpp.o: CXX_COMPILER__univecho_unscanned_ /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/command_history.cpp || cmake_object_order_depends_target_univecho
+build CMakeFiles/univecho.dir/src/core/command_history.cpp.o: CXX_COMPILER__univecho_unscanned_Release /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/command_history.cpp || cmake_object_order_depends_target_univecho
+  CONFIG = Release
   DEP_FILE = CMakeFiles/univecho.dir/src/core/command_history.cpp.o.d
-  FLAGS = -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
+  FLAGS = -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
   INCLUDES = -I/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/include
   OBJECT_DIR = CMakeFiles/univecho.dir
   OBJECT_FILE_DIR = CMakeFiles/univecho.dir/src/core
   TARGET_SUPPORT_DIR = CMakeFiles/univecho.dir
 
-build CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o: CXX_COMPILER__univecho_unscanned_ /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/semantic_search.cpp || cmake_object_order_depends_target_univecho
+build CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o: CXX_COMPILER__univecho_unscanned_Release /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/semantic_search.cpp || cmake_object_order_depends_target_univecho
+  CONFIG = Release
   DEP_FILE = CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o.d
-  FLAGS = -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
+  FLAGS = -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
   INCLUDES = -I/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/include
   OBJECT_DIR = CMakeFiles/univecho.dir
   OBJECT_FILE_DIR = CMakeFiles/univecho.dir/src/core
   TARGET_SUPPORT_DIR = CMakeFiles/univecho.dir
 
-build CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o: CXX_COMPILER__univecho_unscanned_ /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/resource_manager.cpp || cmake_object_order_depends_target_univecho
+build CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o: CXX_COMPILER__univecho_unscanned_Release /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/src/core/resource_manager.cpp || cmake_object_order_depends_target_univecho
+  CONFIG = Release
   DEP_FILE = CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o.d
-  FLAGS = -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
+  FLAGS = -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
   INCLUDES = -I/home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/include
   OBJECT_DIR = CMakeFiles/univecho.dir
   OBJECT_FILE_DIR = CMakeFiles/univecho.dir/src/core
@@ -92,8 +102,10 @@ build CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o: CXX_COMPILER__uni
 #############################################
 # Link the executable univecho
 
-build univecho: CXX_EXECUTABLE_LINKER__univecho_ CMakeFiles/univecho.dir/src/main.cpp.o CMakeFiles/univecho.dir/src/core/database.cpp.o CMakeFiles/univecho.dir/src/core/command_history.cpp.o CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o | /usr/lib/libsqlite3.so /usr/lib/libcurl.so /usr/lib/libncursesw.so /usr/lib/libcurl.so
+build univecho: CXX_EXECUTABLE_LINKER__univecho_Release CMakeFiles/univecho.dir/src/main.cpp.o CMakeFiles/univecho.dir/src/core/database.cpp.o CMakeFiles/univecho.dir/src/core/command_history.cpp.o CMakeFiles/univecho.dir/src/core/semantic_search.cpp.o CMakeFiles/univecho.dir/src/core/resource_manager.cpp.o | /usr/lib/libsqlite3.so /usr/lib/libcurl.so /usr/lib/libncursesw.so /usr/lib/libcurl.so
+  CONFIG = Release
   DEP_FILE = CMakeFiles/univecho.dir/link.d
+  FLAGS = -O3 -DNDEBUG
   LINK_FLAGS = -Wl,--dependency-file=CMakeFiles/univecho.dir/link.d
   LINK_LIBRARIES = /usr/lib/libsqlite3.so  /usr/lib/libcurl.so  /usr/lib/libncursesw.so  /usr/lib/libcurl.so
   OBJECT_DIR = CMakeFiles/univecho.dir
@@ -147,14 +159,14 @@ build all: phony univecho
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/cmake_install.cmake: RERUN_CMAKE | /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/CMakeLists.txt /usr/share/cmake/Modules/CMakeCXXInformation.cmake /usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake/Modules/CMakeGenericSystem.cmake /usr/share/cmake/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake/Modules/CMakeLanguageInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake/Modules/Compiler/GNU-CXX.cmake /usr/share/cmake/Modules/Compiler/GNU.cmake /usr/share/cmake/Modules/FindCURL.cmake /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake /usr/share/cmake/Modules/FindPackageMessage.cmake /usr/share/cmake/Modules/FindPkgConfig.cmake /usr/share/cmake/Modules/FindSQLite3.cmake /usr/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake /usr/share/cmake/Modules/Linker/GNU-CXX.cmake /usr/share/cmake/Modules/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake/Modules/Platform/Linux.cmake /usr/share/cmake/Modules/Platform/UnixPaths.cmake /usr/share/cmake/Modules/SelectLibraryConfigurations.cmake CMakeCache.txt CMakeFiles/4.4.4/CMakeCXXCompiler.cmake CMakeFiles/4.4.4/CMakeSystem.cmake
+build build.ninja /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/build/cmake_install.cmake: RERUN_CMAKE | /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/CMakeLists.txt /usr/share/cmake/Modules/CMakeCXXInformation.cmake /usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake/Modules/CMakeGenericSystem.cmake /usr/share/cmake/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake/Modules/CMakeLanguageInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake/Modules/Compiler/GNU-CXX.cmake /usr/share/cmake/Modules/Compiler/GNU.cmake /usr/share/cmake/Modules/FindCURL.cmake /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake /usr/share/cmake/Modules/FindPackageMessage.cmake /usr/share/cmake/Modules/FindPkgConfig.cmake /usr/share/cmake/Modules/FindSQLite3.cmake /usr/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake /usr/share/cmake/Modules/Linker/GNU-CXX.cmake /usr/share/cmake/Modules/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake/Modules/Platform/Linux.cmake /usr/share/cmake/Modules/Platform/UnixPaths.cmake /usr/share/cmake/Modules/SelectLibraryConfigurations.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake CMakeCache.txt CMakeFiles/4.4.4/CMakeCXXCompiler.cmake CMakeFiles/4.4.4/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/CMakeLists.txt /usr/share/cmake/Modules/CMakeCXXInformation.cmake /usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake/Modules/CMakeGenericSystem.cmake /usr/share/cmake/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake/Modules/CMakeLanguageInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake/Modules/Compiler/GNU-CXX.cmake /usr/share/cmake/Modules/Compiler/GNU.cmake /usr/share/cmake/Modules/FindCURL.cmake /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake /usr/share/cmake/Modules/FindPackageMessage.cmake /usr/share/cmake/Modules/FindPkgConfig.cmake /usr/share/cmake/Modules/FindSQLite3.cmake /usr/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake /usr/share/cmake/Modules/Linker/GNU-CXX.cmake /usr/share/cmake/Modules/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake/Modules/Platform/Linux.cmake /usr/share/cmake/Modules/Platform/UnixPaths.cmake /usr/share/cmake/Modules/SelectLibraryConfigurations.cmake CMakeCache.txt CMakeFiles/4.4.4/CMakeCXXCompiler.cmake CMakeFiles/4.4.4/CMakeSystem.cmake: phony
+build /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/CMakeLists.txt /usr/share/cmake/Modules/CMakeCXXInformation.cmake /usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake /usr/share/cmake/Modules/CMakeGenericSystem.cmake /usr/share/cmake/Modules/CMakeInitializeConfigs.cmake /usr/share/cmake/Modules/CMakeLanguageInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInformation.cmake /usr/share/cmake/Modules/CMakeSystemSpecificInitialize.cmake /usr/share/cmake/Modules/Compiler/CMakeCommonCompilerMacros.cmake /usr/share/cmake/Modules/Compiler/GNU-CXX.cmake /usr/share/cmake/Modules/Compiler/GNU.cmake /usr/share/cmake/Modules/FindCURL.cmake /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake /usr/share/cmake/Modules/FindPackageMessage.cmake /usr/share/cmake/Modules/FindPkgConfig.cmake /usr/share/cmake/Modules/FindSQLite3.cmake /usr/share/cmake/Modules/Internal/CMakeCXXLinkerInformation.cmake /usr/share/cmake/Modules/Internal/CMakeCommonLinkerInformation.cmake /usr/share/cmake/Modules/Linker/GNU-CXX.cmake /usr/share/cmake/Modules/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/GNU.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linker/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-GNU-CXX.cmake /usr/share/cmake/Modules/Platform/Linux-GNU.cmake /usr/share/cmake/Modules/Platform/Linux-Initialize.cmake /usr/share/cmake/Modules/Platform/Linux.cmake /usr/share/cmake/Modules/Platform/UnixPaths.cmake /usr/share/cmake/Modules/SelectLibraryConfigurations.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake /usr/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake CMakeCache.txt CMakeFiles/4.4.4/CMakeCXXCompiler.cmake CMakeFiles/4.4.4/CMakeSystem.cmake: phony
 
 
 #############################################

@@ -22,7 +22,7 @@ CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
+CMAKE_BUILD_TYPE:STRING=Release
 
 //CXX compiler
 CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
@@ -234,6 +234,9 @@ SQLite3_INCLUDE_DIR:PATH=/usr/include
 //Path to a library.
 SQLite3_LIBRARY:FILEPATH=/usr/lib/libsqlite3.so
 
+//The directory containing a CMake configuration file for nlohmann_json.
+nlohmann_json_DIR:PATH=/usr/share/cmake/nlohmann_json
+
 //Path to a library.
 pkgcfg_lib_NCURSESW_ncursesw:FILEPATH=/usr/lib/libncursesw.so
 
@@ -411,6 +414,8 @@ FIND_PACKAGE_MESSAGE_DETAILS_CURL:INTERNAL=[/usr/lib/libcurl.so][/usr/include][ 
 FIND_PACKAGE_MESSAGE_DETAILS_PkgConfig:INTERNAL=[/usr/bin/pkg-config][v3.0.10()]
 //Details about finding SQLite3
 FIND_PACKAGE_MESSAGE_DETAILS_SQLite3:INTERNAL=[/usr/lib/libsqlite3.so][/usr/include][v3.54.0()]
+//Details about finding nlohmann_json
+FIND_PACKAGE_MESSAGE_DETAILS_nlohmann_json:INTERNAL=[/usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake][v3.12.0()]
 NCURSESW_CFLAGS:INTERNAL=-D_DEFAULT_SOURCE;-D_XOPEN_SOURCE=600
 NCURSESW_CFLAGS_I:INTERNAL=
 NCURSESW_CFLAGS_OTHER:INTERNAL=-D_DEFAULT_SOURCE;-D_XOPEN_SOURCE=600
@@ -524,7 +529,7 @@ PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
 SQLite3_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: SQLite3_LIBRARY
 SQLite3_LIBRARY-ADVANCED:INTERNAL=1
-__pkg_config_arguments_NCURSESW:INTERNAL=REQUIRED;REQUIRED;IMPORTED_TARGET;ncursesw
+__pkg_config_arguments_NCURSESW:INTERNAL=REQUIRED;IMPORTED_TARGET;ncursesw
 __pkg_config_arguments_PC_CURL:INTERNAL=QUIET;libcurl
 __pkg_config_arguments_PC_SQLite3:INTERNAL=QUIET;sqlite3
 __pkg_config_checked_NCURSESW:INTERNAL=1
@@ -536,5 +541,5 @@ pkgcfg_lib_NCURSESW_ncursesw-ADVANCED:INTERNAL=1
 pkgcfg_lib_PC_CURL_curl-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_PC_SQLite3_sqlite3
 pkgcfg_lib_PC_SQLite3_sqlite3-ADVANCED:INTERNAL=1
-prefix_result:INTERNAL=alt-svc;AsynchDNS;brotli;GSS-API;HSTS;HTTP2;HTTP3;HTTPS-proxy;IDN;IPv6;Kerberos;Largefile;libz;PSL;SPNEGO;SSL;threadsafe;UnixSockets;zstd
+prefix_result:INTERNAL=/usr/lib
 

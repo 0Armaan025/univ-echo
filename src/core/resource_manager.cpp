@@ -1,12 +1,15 @@
 #include "../../include/univ-echo/resource_manager.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <fstream>
 #include <limits>
 #include <string>
 #include <thread>
 
-#ifdef __linux__
+#ifdef _WIN32
+#include <windows.h>
+#elif defined(__linux__)
 #include <unistd.h>
 #endif
 
@@ -133,20 +136,30 @@ ResourceSnapshot detectResources() {
     }
   }
 
+#endif
+
+#ifdef _WIN32
+  MEMORYSTATUSEX memoryStatus{};
+  memoryStatus.dwLength = sizeof(memoryStatus);
+
+  if (GlobalMemoryStatusEx(&memoryStatus)) {
+    result.totalRamBytes = memoryStatus.ullTotalPhys;
+    result.availableRamBytes = memoryStatus.ullAvailPhys;
+  }
+#endif
+
   if (result.totalRamBytes > 0) {
     result.availableRamBytes =
         std::min(result.availableRamBytes, result.totalRamBytes);
   }
 
   const bool lowAbsoluteMemory = result.availableRamBytes < GiB;
+
   const bool lowRelativeMemory =
       result.totalRamBytes > 0 &&
       result.availableRamBytes < result.totalRamBytes / 10;
 
   result.memoryPressure = lowAbsoluteMemory || lowRelativeMemory;
-
-#endif
-
   return result;
 }
 

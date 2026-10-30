@@ -260,6 +260,12 @@ std::vector<Embedding> embedRemote(const std::vector<std::string> &texts) {
 }
 
 fs::path cachePath() {
+#ifdef _WIN32
+  if (const char *localAppData = std::getenv("LOCALAPPDATA");
+      localAppData && *localAppData) {
+    return fs::path(localAppData) / "univecho" / "qwen3-embedding-0.6b-v1.bin";
+  }
+#else
   if (const char *xdg = std::getenv("XDG_CACHE_HOME"); xdg && *xdg) {
     return fs::path(xdg) / "univecho" / "qwen3-embedding-0.6b-v1.bin";
   }
@@ -268,10 +274,10 @@ fs::path cachePath() {
     return fs::path(home) / ".cache" / "univecho" /
            "qwen3-embedding-0.6b-v1.bin";
   }
+#endif
 
   throw std::runtime_error("Cannot locate a user cache directory");
 }
-
 void normalizeEmbedding(Embedding &embedding) {
   float normSquared = 0.0F;
 

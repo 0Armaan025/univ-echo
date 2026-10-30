@@ -7,11 +7,11 @@
 		[
 			"add_library",
 			"find_package",
-			"set_property"
+			"set_target_properties"
 		],
 		"files" : 
 		[
-			"/usr/share/cmake/Modules/FindCURL.cmake",
+			"/usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake",
 			"CMakeLists.txt"
 		],
 		"nodes" : 
@@ -22,7 +22,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 16,
+				"line" : 11,
 				"parent" : 0
 			},
 			{
@@ -32,13 +32,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 301,
+				"line" : 10,
 				"parent" : 2
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 332,
+				"line" : 11,
 				"parent" : 2
 			}
 		]
@@ -48,22 +48,29 @@
 		"major" : 2,
 		"minor" : 11
 	},
-	"id" : "CURL::libcurl::@6890427a1f51a3e7e1df",
+	"id" : "nlohmann_json::@6890427a1f51a3e7e1df",
 	"imported" : true,
+	"interfaceCompileDependencies" : 
+	[
+		{
+			"backtrace" : 4,
+			"id" : "nlohmann_json::nlohmann_json::@6890427a1f51a3e7e1df"
+		}
+	],
 	"interfaceLinkLibraries" : 
 	[
 		{
 			"backtrace" : 4,
-			"fragment" : "/usr/lib/libcurl.so"
+			"id" : "nlohmann_json::nlohmann_json::@6890427a1f51a3e7e1df"
 		}
 	],
 	"local" : true,
-	"name" : "CURL::libcurl",
+	"name" : "nlohmann_json",
 	"paths" : 
 	{
 		"build" : ".",
 		"source" : "."
 	},
 	"sources" : [],
-	"type" : "UNKNOWN_LIBRARY"
+	"type" : "INTERFACE_LIBRARY"
 }
