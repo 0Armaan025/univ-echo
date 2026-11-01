@@ -181,7 +181,7 @@ ResourceProfile chooseResourceProfile(const ResourceSnapshot &resources) {
   if (available < GiB) {
     profile.embeddingBatchSize = 4;
     profile.candidateLimit = 75;
-  } else if (available > 2 * GiB) {
+  } else if (available < 2 * GiB) {
     profile.embeddingBatchSize = 8;
     profile.candidateLimit = 100;
   } else if (available < 4 * GiB) {
