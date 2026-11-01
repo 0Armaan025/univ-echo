@@ -39,14 +39,24 @@ struct TerminalDNATool {
   std::size_t uses{};
 };
 
+struct TerminalDNACategory {
+  std::string name;
+  std::size_t uses{};
+};
 struct TerminalDNAStats {
 
   std::size_t totalEntries{};
   std::size_t uniqueCommands{};
   std::size_t activeDays{};
 
+  std::string mostActiveDate;
+  int peakHour{-1};
+  std::size_t peakHourUses{};
+
   std::array<std::size_t, 24> hourlyActivity{};
   std::vector<TerminalDNATool> topTools;
+
+  std::vector<TerminalDNACategory> categories;
 };
 
 class Database {

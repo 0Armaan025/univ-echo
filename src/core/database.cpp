@@ -11,6 +11,9 @@
 #include <string>
 #include <unordered_set>
 
+#include <iomanip>
+#include <sstream>
+
 #include <iostream>
 using namespace std;
 namespace univecho {
@@ -410,53 +413,89 @@ TerminalDNAStats Database::getTerminalDNA() {
   Statement statement(db_, "SELECT command, timestamp FROM command_history;");
 
   std::unordered_set<std::string> uniqueCommands;
-  std::set<int> activeDays;
-
+  std::map<int, std::size_t> activeDays;
   std::map<std::string, std::size_t> toolCounts;
+  std::map<std::string, std::size_t> categoryCounts;
 
-  auto identifyTool = [](const std::string &command) -> std::string {
+  const auto identifyTool = [](const std::string &command) {
     const auto start = command.find_first_not_of(" \t");
-    if (start == std::string::npos) {
-      return {};
-    }
+    if (start == std::string::npos)
+      return std::string{};
 
     const auto end = command.find_first_of(" \t", start);
 
     std::string executable = command.substr(
         start, end == std::string::npos ? std::string::npos : end - start);
 
-    const auto slash = executable.find_last_of("/");
-
-    if (slash != std::string::npos) {
+    const auto slash = executable.find_last_of('/');
+    if (slash != std::string::npos)
       executable = executable.substr(slash + 1);
-    }
 
-    static const std::unordered_set<std::string> wrappers = {"sudo", "command",
-                                                             "time", "nohup"};
+    static const std::unordered_set<std::string> wrappers{"sudo", "command",
+                                                          "time", "nohup"};
 
     if (wrappers.find(executable) != wrappers.end() &&
         end != std::string::npos) {
+
       const auto next = command.find_first_not_of(" \t", end);
+
       if (next != std::string::npos) {
         const auto nextEnd = command.find_first_of(" \t", next);
+
         executable = command.substr(next, nextEnd == std::string::npos
                                               ? std::string::npos
                                               : nextEnd - next);
 
-        const auto nextSlash = executable.find_last_of("/");
-
-        if (nextSlash != std::string::npos) {
+        const auto nextSlash = executable.find_last_of('/');
+        if (nextSlash != std::string::npos)
           executable = executable.substr(nextSlash + 1);
-        }
       }
     }
 
     return executable;
   };
 
-  sqlite3_stmt *stmt = statement.get();
+  const auto identifyCategory = [](const std::string &tool) {
+    static const std::unordered_set<std::string> development{
+        "git",   "gcc",   "g++",   "clang",  "cmake",   "make",
+        "ninja", "cargo", "rustc", "python", "python3", "node",
+        "npm",   "npx",   "go",    "java"};
 
-  int rc;
+    static const std::unordered_set<std::string> navigation{
+        "cd",     "ls",    "pwd",     "tree", "find",
+        "locate", "which", "whereis", "file"};
+
+    static const std::unordered_set<std::string> system{
+        "systemctl", "journalctl", "ps",    "top",   "htop", "kill", "free",
+        "uname",     "lscpu",      "lsblk", "mount", "df",   "du"};
+
+    static const std::unordered_set<std::string> package{
+        "pacman", "yay", "paru", "apt", "apt-get", "dnf", "flatpak", "snap"};
+
+    static const std::unordered_set<std::string> network{
+        "curl", "wget", "ping", "ssh", "scp", "ip", "nmcli", "nmap"};
+
+    static const std::unordered_set<std::string> editor{
+        "nvim", "vim", "vi", "nano", "emacs", "code"};
+
+    if (development.find(tool) != development.end())
+      return "Development";
+    if (navigation.find(tool) != navigation.end())
+      return "Navigation";
+    if (system.find(tool) != system.end())
+      return "System";
+    if (package.find(tool) != package.end())
+      return "Packages";
+    if (network.find(tool) != network.end())
+      return "Networking";
+    if (editor.find(tool) != editor.end())
+      return "Editors";
+
+    return "Other";
+  };
+
+  sqlite3_stmt *stmt = statement.get();
+  int rc = SQLITE_OK;
 
   while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
     ++stats.totalEntries;
@@ -468,29 +507,32 @@ TerminalDNAStats Database::getTerminalDNA() {
 
     if (!tool.empty()) {
       ++toolCounts[tool];
+      ++categoryCounts[identifyCategory(tool)];
     }
 
-    if (sqlite3_column_type(stmt, 1) != SQLITE_NULL) {
-      const auto timestamp =
-          static_cast<std::time_t>(sqlite3_column_int64(stmt, 1));
+    if (sqlite3_column_type(stmt, 1) == SQLITE_NULL)
+      continue;
 
-      std::tm local{};
+    const auto timestamp =
+        static_cast<std::time_t>(sqlite3_column_int64(stmt, 1));
+
+    std::tm local{};
 
 #ifdef _WIN32
-      const bool timeValid = localtime_s(&local, &timestamp) == 0;
+    const bool timeValid = localtime_s(&local, &timestamp) == 0;
 #else
-      const bool timeValid = localtime_r(&timestamp, &local) != nullptr;
+    const bool timeValid = localtime_r(&timestamp, &local) != nullptr;
 #endif
 
-      if (timeValid) {
-        ++stats.hourlyActivity[local.tm_hour];
+    if (!timeValid)
+      continue;
 
-        const int dateKey = (local.tm_year + 1900) * 10000 +
-                            (local.tm_mon + 1) * 100 + local.tm_mday;
+    ++stats.hourlyActivity[local.tm_hour];
 
-        activeDays.insert(dateKey);
-      }
-    }
+    const int dateKey = (local.tm_year + 1900) * 10000 +
+                        (local.tm_mon + 1) * 100 + local.tm_mday;
+
+    ++activeDays[dateKey];
   }
 
   if (rc != SQLITE_DONE) {
@@ -501,18 +543,60 @@ TerminalDNAStats Database::getTerminalDNA() {
   stats.uniqueCommands = uniqueCommands.size();
   stats.activeDays = activeDays.size();
 
-  for (const auto &[name, uses] : toolCounts) {
+  for (const auto &[date, uses] : activeDays) {
+    if (uses > 0 &&
+        uses > activeDays[stats.mostActiveDate.empty() ? date : date]) {
+      // The actual most-active date is selected below.
+    }
+  }
+
+  int bestDate = 0;
+  std::size_t bestDateUses = 0;
+
+  for (const auto &[date, uses] : activeDays) {
+    if (uses > bestDateUses) {
+      bestDate = date;
+      bestDateUses = uses;
+    }
+  }
+
+  if (bestDate != 0) {
+    const int year = bestDate / 10000;
+    const int month = (bestDate / 100) % 100;
+    const int day = bestDate % 100;
+
+    std::ostringstream dateText;
+    dateText << year << '-' << std::setfill('0') << std::setw(2) << month << '-'
+             << std::setw(2) << day;
+
+    stats.mostActiveDate = dateText.str();
+  }
+
+  for (int hour = 0; hour < 24; ++hour) {
+    if (stats.hourlyActivity[hour] > stats.peakHourUses) {
+      stats.peakHour = hour;
+      stats.peakHourUses = stats.hourlyActivity[hour];
+    }
+  }
+
+  for (const auto &[name, uses] : toolCounts)
     stats.topTools.push_back({name, uses});
-  }
 
-  std::sort(stats.topTools.begin(), stats.topTools.end(),
-            [](const TerminalDNATool &a, const TerminalDNATool &b) {
-              return a.uses > b.uses;
-            });
+  for (const auto &[name, uses] : categoryCounts)
+    stats.categories.push_back({name, uses});
 
-  if (stats.topTools.size() > 8) {
-    stats.topTools.resize(8);
-  }
+  const auto sortByUses = [](const auto &a, const auto &b) {
+    return a.uses > b.uses;
+  };
+
+  std::sort(stats.topTools.begin(), stats.topTools.end(), sortByUses);
+  std::sort(stats.categories.begin(), stats.categories.end(), sortByUses);
+
+  if (stats.topTools.size() > 6)
+    stats.topTools.resize(6);
+
+  if (stats.categories.size() > 6)
+    stats.categories.resize(6);
 
   return stats;
 }
