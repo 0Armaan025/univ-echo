@@ -138,6 +138,15 @@ void Database::initialize() {
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+
+    CREATE INDEX IF NOT EXISTS command_history_latest_idx
+    ON command_history(
+        command,
+        (timestamp IS NOT NULL) DESC,
+        timestamp DESC,
+        id DESC
+    );
+
     CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts
     USING fts5(
         title,

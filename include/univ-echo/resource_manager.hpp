@@ -17,6 +17,8 @@ struct ResourceProfile {
   std::size_t candidateLimit = 50;
 };
 
+// alright
+// let's do it
 ResourceSnapshot detectResources();
 ResourceProfile chooseResourceProfile(const ResourceSnapshot &resources);
 } // namespace univecho
