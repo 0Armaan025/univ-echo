@@ -4,8 +4,31 @@ cmake-build-*/
 CMakeCache.txt
 CMakeFiles/
 compile_commands.json
+cmake_install.cmake
+Makefile
 
-# Compiled binaries
+# Compiled binaries and objects
 *.o
 *.a
 *.so
+*.so.*
+*.out
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Runtime logs
+*.log
+
+# Local caches
+.cache/
+.cache-*/
+*.cache
+
+# IDE/editor
+.idea/
+.vscode/
+*.swp
+*.swo
