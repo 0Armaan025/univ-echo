@@ -1035,6 +1035,7 @@ void runTui(univecho::Database &database) {
           --selected;
         break;
 
+        // oh man, im a lil tired
       case KEY_DOWN:
         if (selected + 1 < static_cast<int>(memories.size())) {
           ++selected;
