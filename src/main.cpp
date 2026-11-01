@@ -1,6 +1,7 @@
 #include "../include/univ-echo/command_history.hpp"
 #include "../include/univ-echo/database.hpp"
 #include "../include/univ-echo/semantic_search.hpp"
+#include "../include/univ-echo/system_monitor.hpp"
 
 #ifdef _WIN32
 #include <curses.h>
@@ -260,9 +261,10 @@ void draw(const std::vector<univecho::Memory> &memories, int selected,
     }
   }
 
-  mvaddstr(LINES - 3, 2,
-           "[n] New [/] Search/Ask [c] Commands [t] DNA [r] All "
-           "[Enter] Open");
+  mvaddstr(
+      LINES - 3, 2,
+      "[n] New [/] Search/Ask [c] Commands [t] DNA [s] System Monitor [r] All "
+      "[Enter] Open");
   mvaddstr(LINES - 2, 2, "[Up/Down] Navigate    [q] Quit");
 
   refresh();
@@ -689,6 +691,7 @@ void runTerminalDNA(univecho::Database &database) {
     mvaddstr(1, 2, "U N I V E C H O    |    TERMINAL DNA");
     attroff(A_BOLD);
 
+    // alright
     if (LINES < 32 || COLS < 72) {
       mvaddstr(4, 2, "Terminal too small.");
       mvaddstr(5, 2, "Minimum: 72 columns x 32 rows.");
@@ -830,6 +833,166 @@ void runTerminalDNA(univecho::Database &database) {
       stats = database.getTerminalDNA();
   }
 }
+void runSystemMonitor() {
+  univecho::SystemMonitor monitor;
+
+  timeout(1000);
+
+  while (true) {
+    univecho::SystemMetrics metrics;
+
+    try {
+      metrics = monitor.sample();
+    } catch (const std::exception &error) {
+      erase();
+      mvaddstr(2, 2, "SYSTEM MONITOR ERROR");
+      mvaddnstr(4, 2, error.what(), COLS - 4);
+      mvaddstr(LINES - 2, 2, "Press any key to return");
+      refresh();
+
+      timeout(-1);
+      getch();
+      timeout(1000);
+      return;
+    }
+
+    erase();
+
+    attron(A_BOLD);
+    mvaddstr(1, 2, "U N I V E C H O  |  SYSTEM MONITOR");
+    attroff(A_BOLD);
+    if (LINES < 24 || COLS < 72) {
+      mvaddstr(4, 2, "Terminal too small.");
+      mvaddstr(5, 2, "Minimum: 72 columns x 24 rows.");
+      mvaddstr(LINES - 2, 2, "Press q or Esc to return.");
+      refresh();
+
+      timeout(-1);
+      int key = getch();
+      timeout(1000);
+
+      if (key == 'q' || key == 27)
+        return;
+
+      continue;
+    }
+
+    mvaddstr(3, 2, "CPU");
+    mvprintw(4, 4, "Total usage: %5.1f%%", metrics.cpuUsage);
+
+    const auto drawBar = [](int row, int col, int width, double percentage) {
+      const int filled =
+          std::clamp(static_cast<int>(percentage * width / 100.0), 0, width);
+
+      mvaddch(row, col, '[');
+
+      for (int i = 0; i < width; ++i)
+        mvaddch(row, col + 1 + i, i < filled ? '#' : ' ');
+
+      mvaddch(row, col + width + 1, ']');
+    };
+
+    drawBar(5, 4, 30, metrics.cpuUsage);
+
+    mvaddstr(7, 2, "PER-CORE USAGE");
+
+    const int maxCoreRows = std::max(
+        0, std::min(static_cast<int>(metrics.cores.size()), (LINES - 13) / 2));
+
+    for (int i = 0; i < maxCoreRows; ++i) {
+      const auto &core = metrics.cores[static_cast<std::size_t>(i)];
+
+      const int row = 8 + i / 2;
+      const int col = (i % 2) * (COLS / 2) + 4;
+
+      mvprintw(row, col, "%-5s %5.1f%%", core.name.c_str(), core.usagePercent);
+
+      drawBar(row + 1, col, 16, core.usagePercent);
+    }
+
+    // MEMORY
+
+    const int memoryY = 8 + (maxCoreRows + 1) / 2 + 2;
+
+    if (memoryY < LINES - 7) {
+      attron(A_BOLD);
+      mvaddstr(memoryY, 2, "MEMORY");
+      attroff(A_BOLD);
+
+      const double ramPercent =
+          metrics.totalRAM ? 100.0 * metrics.usedRAM / metrics.totalRAM : 0.0;
+
+      const double swapPercent =
+          metrics.totalSwap ? 100.0 * (metrics.totalSwap - metrics.freeSwap) /
+                                  metrics.totalSwap
+                            : 0.0;
+
+      const auto toGiB = [](std::uint64_t bytes) {
+        return static_cast<double>(bytes) / (1024.0 * 1024.0 * 1024.0);
+      };
+
+      mvprintw(memoryY + 1, 4, "RAM: %.2f / %.2f GiB (%.1f%%)",
+               toGiB(metrics.usedRAM), toGiB(metrics.totalRAM), ramPercent);
+
+      drawBar(memoryY + 2, 4, 30, ramPercent);
+
+      mvprintw(memoryY + 3, 4, "Available: %.2f GiB",
+               toGiB(metrics.availableRAM));
+
+      mvprintw(memoryY + 4, 4, "Swap: %.2f / %.2f GiB (%.1f%%)",
+               toGiB(metrics.totalSwap - metrics.freeSwap),
+               toGiB(metrics.totalSwap), swapPercent);
+
+      drawBar(memoryY + 5, 4, 30, swapPercent);
+    }
+
+    // SYSTEM INFORMATION
+
+    const int infoX = COLS / 2;
+
+    attron(A_BOLD);
+    mvaddstr(3, infoX, "SYSTEM");
+    attroff(A_BOLD);
+
+    mvprintw(4, infoX, "Load average: %.2f %.2f %.2f", metrics.load1,
+             metrics.load5, metrics.load15);
+
+    const auto uptime = static_cast<std::uint64_t>(metrics.uptimeSeconds);
+
+    const auto days = uptime / 86400;
+    const auto hours = (uptime % 86400) / 3600;
+    const auto minutes = (uptime % 3600) / 60;
+
+    mvprintw(5, infoX, "Uptime: %llu days %llu:%02llu",
+             static_cast<unsigned long long>(days),
+             static_cast<unsigned long long>(hours),
+             static_cast<unsigned long long>(minutes));
+
+    mvprintw(6, infoX, "CPU cores: %zu", metrics.cores.size());
+
+    mvaddstr(LINES - 2, 2, "[p] Pause  [r] Refresh  [q/Esc] Back");
+
+    refresh();
+
+    const int key = getch();
+
+    if (key == 'q' || key == 27)
+      break;
+
+    if (key == 'p' || key == 'P') {
+      timeout(-1);
+      mvaddstr(LINES - 1, 2, "PAUSED - press any key to resume");
+      refresh();
+      getch();
+      timeout(1000);
+    }
+
+    if (key == 'r' || key == 'R')
+      continue;
+  }
+
+  timeout(-1);
+}
 void runTui(univecho::Database &database) {
   if (!initscr()) {
     throw std::runtime_error("Couldn't initalize ncurses");
@@ -863,6 +1026,9 @@ void runTui(univecho::Database &database) {
         break;
       case 't':
         runTerminalDNA(database);
+        break;
+      case 's':
+        runSystemMonitor();
         break;
       case KEY_UP:
         if (selected > 0)
