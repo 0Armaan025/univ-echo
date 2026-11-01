@@ -1,8 +1,15 @@
 #include "../../include/univ-echo/database.hpp"
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <ctime>
+#include <map>
+#include <set>
 #include <sqlite3.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 
 #include <iostream>
 using namespace std;
@@ -127,6 +134,8 @@ Database::~Database() {
     sqlite3_close(db_);
   }
 }
+
+// alright
 
 void Database::initialize() {
 
@@ -394,6 +403,118 @@ std::vector<CommandRecord> Database::listCommands() {
   }
 
   return results;
+}
+TerminalDNAStats Database::getTerminalDNA() {
+  TerminalDNAStats stats;
+
+  Statement statement(db_, "SELECT command, timestamp FROM command_history;");
+
+  std::unordered_set<std::string> uniqueCommands;
+  std::set<int> activeDays;
+
+  std::map<std::string, std::size_t> toolCounts;
+
+  auto identifyTool = [](const std::string &command) -> std::string {
+    const auto start = command.find_first_not_of(" \t");
+    if (start == std::string::npos) {
+      return {};
+    }
+
+    const auto end = command.find_first_of(" \t", start);
+
+    std::string executable = command.substr(
+        start, end == std::string::npos ? std::string::npos : end - start);
+
+    const auto slash = executable.find_last_of("/");
+
+    if (slash != std::string::npos) {
+      executable = executable.substr(slash + 1);
+    }
+
+    static const std::unordered_set<std::string> wrappers = {"sudo", "command",
+                                                             "time", "nohup"};
+
+    if (wrappers.find(executable) != wrappers.end() &&
+        end != std::string::npos) {
+      const auto next = command.find_first_not_of(" \t", end);
+      if (next != std::string::npos) {
+        const auto nextEnd = command.find_first_of(" \t", next);
+        executable = command.substr(next, nextEnd == std::string::npos
+                                              ? std::string::npos
+                                              : nextEnd - next);
+
+        const auto nextSlash = executable.find_last_of("/");
+
+        if (nextSlash != std::string::npos) {
+          executable = executable.substr(nextSlash + 1);
+        }
+      }
+    }
+
+    return executable;
+  };
+
+  sqlite3_stmt *stmt = statement.get();
+
+  int rc;
+
+  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+    ++stats.totalEntries;
+
+    const std::string command = columnText(stmt, 0);
+    uniqueCommands.insert(command);
+
+    const std::string tool = identifyTool(command);
+
+    if (!tool.empty()) {
+      ++toolCounts[tool];
+    }
+
+    if (sqlite3_column_type(stmt, 1) != SQLITE_NULL) {
+      const auto timestamp =
+          static_cast<std::time_t>(sqlite3_column_int64(stmt, 1));
+
+      std::tm local{};
+
+#ifdef _WIN32
+      const bool timeValid = localtime_s(&local, &timestamp) == 0;
+#else
+      const bool timeValid = localtime_r(&timestamp, &local) != nullptr;
+#endif
+
+      if (timeValid) {
+        ++stats.hourlyActivity[local.tm_hour];
+
+        const int dateKey = (local.tm_year + 1900) * 10000 +
+                            (local.tm_mon + 1) * 100 + local.tm_mday;
+
+        activeDays.insert(dateKey);
+      }
+    }
+  }
+
+  if (rc != SQLITE_DONE) {
+    throw std::runtime_error(std::string("Reading terminal DNA: ") +
+                             sqlite3_errmsg(db_));
+  }
+
+  stats.uniqueCommands = uniqueCommands.size();
+  stats.activeDays = activeDays.size();
+
+  for (const auto &[name, uses] : toolCounts) {
+    stats.topTools.push_back({name, uses});
+  }
+
+  std::sort(stats.topTools.begin(), stats.topTools.end(),
+            [](const TerminalDNATool &a, const TerminalDNATool &b) {
+              return a.uses > b.uses;
+            });
+
+  if (stats.topTools.size() > 8) {
+    stats.topTools.resize(8);
+  }
+
+  return stats;
 }
 
 } // namespace univecho

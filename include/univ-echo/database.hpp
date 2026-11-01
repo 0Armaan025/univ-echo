@@ -4,9 +4,11 @@
 #include <vector>
 
 #include "./command_history.hpp"
+#include <array>
 #include <ctime>
 #include <optional>
 #include <string>
+#include <utility>
 
 #include <iostream>
 using namespace std;
@@ -32,6 +34,21 @@ struct CommandRecord {
   float lexicalScore{};
 };
 
+struct TerminalDNATool {
+  std::string name;
+  std::size_t uses{};
+};
+
+struct TerminalDNAStats {
+
+  std::size_t totalEntries{};
+  std::size_t uniqueCommands{};
+  std::size_t activeDays{};
+
+  std::array<std::size_t, 24> hourlyActivity{};
+  std::vector<TerminalDNATool> topTools;
+};
+
 class Database {
 public:
   explicit Database(const std::string &path);
@@ -52,6 +69,7 @@ public:
   void importCommands(std::vector<CommandHistoryEntry> &entries);
   std::vector<CommandRecord> searchCommands(const std::string &query);
   std::vector<CommandRecord> listCommands();
+  TerminalDNAStats getTerminalDNA();
 
 private:
   sqlite3 *db_ = nullptr;

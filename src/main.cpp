@@ -261,7 +261,8 @@ void draw(const std::vector<univecho::Memory> &memories, int selected,
   }
 
   mvaddstr(LINES - 3, 2,
-           "[n] New [/] Search/Ask [c] Commands [r] All [Enter] Open");
+           "[n] New [/] Search/Ask [c] Commands [t] Terminal DNA [r] All "
+           "[Enter] Open");
   mvaddstr(LINES - 2, 2, "[Up/Down] Navigate    [q] Quit");
 
   refresh();
@@ -678,6 +679,79 @@ void runCommandHistory(univecho::Database &database) {
   }
 }
 
+void runTerminalDNA(univecho::Database &database) {
+  const auto stats = database.getTerminalDNA();
+
+  while (true) {
+    erase();
+
+    attron(A_BOLD);
+
+    mvaddstr(1, 2, "U N I V E C H O    |    TERMINAL DNA");
+    attroff(A_BOLD);
+
+    mvaddstr(3, 2, "YOUR TERMINAL FINGERPRINT");
+
+    mvprintw(5, 4, "HISTORY ENTRIES   : %zu", stats.totalEntries);
+    mvprintw(6, 4, "UNIQUE COMMANDS   : %zu", stats.uniqueCommands);
+    mvprintw(7, 4, "ACTIVE DAYS       : %zu", stats.activeDays);
+
+    mvaddstr(10, 2, "TOP TOOLS");
+
+    if (stats.topTools.empty()) {
+      mvaddstr(12, 4, "No command data available.");
+    } else {
+      const auto maxUses = stats.topTools.front().uses;
+
+      for (std::size_t i = 0; i < stats.topTools.size(); ++i) {
+        const auto &tool = stats.topTools[i];
+
+        const int row = 12 + static_cast<int>(i);
+        const int barWidth =
+            maxUses ? static_cast<int>(tool.uses * 25 / maxUses) : 0;
+
+        mvaddnstr(row, 4, tool.name.c_str(), 14);
+        mvaddstr(row, 20, "[");
+
+        for (int j = 0; j < barWidth; ++j) {
+          mvaddch(row, 21 + j, static_cast<chtype>('#'));
+        }
+
+        mvaddch(row, 21 + barWidth, ']');
+
+        mvprintw(row, 49, "%zu uses", tool.uses);
+      }
+    }
+
+    mvaddstr(22, 2, "HOURLY ACTIVITY");
+
+    const auto maxHour = *std::max_element(stats.hourlyActivity.begin(),
+                                           stats.hourlyActivity.end());
+
+    for (int hour = 0; hour < 24; ++hour) {
+      const auto count = stats.hourlyActivity[hour];
+
+      const int barWidth = maxHour ? static_cast<int>(count * 20 / maxHour) : 0;
+
+      mvprintw(24 + hour / 4, 4 + (hour % 4) * 19, "%02d:00 ", hour);
+
+      for (int j = 0; j < barWidth; ++j) {
+        mvaddch(24 + hour / 4, 11 + (hour % 4) * 19 + j, '#');
+      }
+    }
+
+    mvaddstr(LINES - 2, 2, "[q] Back to UNIV-ECHO");
+
+    refresh();
+
+    const int key = getch();
+
+    if (key == 'q' || key == 27 || key == KEY_ENTER || key == '\n') {
+      return;
+    }
+  }
+}
+
 void runTui(univecho::Database &database) {
   if (!initscr()) {
     throw std::runtime_error("Couldn't initalize ncurses");
@@ -709,6 +783,8 @@ void runTui(univecho::Database &database) {
       case 'c':
         runCommandHistory(database);
         break;
+      case 't':
+        runTerminalDNA(database);
       case KEY_UP:
         if (selected > 0)
           --selected;
