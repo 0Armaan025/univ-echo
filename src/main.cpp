@@ -689,9 +689,9 @@ void runTerminalDNA(univecho::Database &database) {
     mvaddstr(1, 2, "U N I V E C H O    |    TERMINAL DNA");
     attroff(A_BOLD);
 
-    if (LINES < 31 || COLS < 72) {
+    if (LINES < 32 || COLS < 72) {
       mvaddstr(4, 2, "Terminal too small.");
-      mvaddstr(5, 2, "Minimum: 72 columns x 31 rows.");
+      mvaddstr(5, 2, "Minimum: 72 columns x 32 rows.");
       mvaddstr(LINES - 2, 2, "[r] Refresh  [q] Back");
 
       refresh();
@@ -707,7 +707,10 @@ void runTerminalDNA(univecho::Database &database) {
       continue;
     }
 
+    // FINGERPRINT
+    attron(A_BOLD);
     mvaddstr(3, 2, "YOUR TERMINAL FINGERPRINT");
+    attroff(A_BOLD);
 
     mvprintw(5, 4, "HISTORY ENTRIES   : %zu", stats.totalEntries);
     mvprintw(6, 4, "UNIQUE COMMANDS   : %zu", stats.uniqueCommands);
@@ -724,7 +727,10 @@ void runTerminalDNA(univecho::Database &database) {
       mvaddstr(6, 40, "PEAK HOUR         : No data");
     }
 
+    // TOP TOOLS
+    attron(A_BOLD);
     mvaddstr(10, 2, "TOP TOOLS");
+    attroff(A_BOLD);
 
     if (stats.topTools.empty()) {
       mvaddstr(12, 4, "No command data available.");
@@ -749,38 +755,68 @@ void runTerminalDNA(univecho::Database &database) {
       }
     }
 
+    // CATEGORY BREAKDOWN
+    attron(A_BOLD);
     mvaddstr(22, 2, "COMMAND CATEGORIES");
+    attroff(A_BOLD);
+
+    std::size_t totalCategoryUses = 0;
+
+    for (const auto &category : stats.categories)
+      totalCategoryUses += category.uses;
+
+    const std::size_t maxCategoryUses =
+        stats.categories.empty() ? 0 : stats.categories.front().uses;
 
     for (std::size_t i = 0; i < stats.categories.size(); ++i) {
       const auto &category = stats.categories[i];
       const int row = 23 + static_cast<int>(i);
 
+      const int barWidth =
+          maxCategoryUses
+              ? static_cast<int>(category.uses * 15 / maxCategoryUses)
+              : 0;
+
+      const int percentage =
+          totalCategoryUses
+              ? static_cast<int>(category.uses * 100 / totalCategoryUses)
+              : 0;
+
       mvaddnstr(row, 4, category.name.c_str(), 14);
-      mvprintw(row, 22, "%zu uses", category.uses);
+      mvaddch(row, 20, '[');
+
+      for (int j = 0; j < barWidth && j < 15; ++j)
+        mvaddch(row, 21 + j, '#');
+
+      mvaddch(row, 36, ']');
+      mvprintw(row, 38, "%3d%%", percentage);
     }
 
+    // HOURLY ACTIVITY
+    attron(A_BOLD);
     mvaddstr(22, 40, "24-HOUR ACTIVITY");
+    attroff(A_BOLD);
 
     const auto maxHour = *std::max_element(stats.hourlyActivity.begin(),
                                            stats.hourlyActivity.end());
 
+    const char levels[] = " .:-=+#";
+
     for (int hour = 0; hour < 24; ++hour) {
       const auto count = stats.hourlyActivity[static_cast<std::size_t>(hour)];
+
+      const int intensity = maxHour ? static_cast<int>(count * 6 / maxHour) : 0;
 
       const int row = 24 + hour / 4;
       const int col = 40 + (hour % 4) * 8;
 
-      const int barWidth = maxHour ? static_cast<int>(count * 5 / maxHour) : 0;
+      const int displayedCount =
+          static_cast<int>(std::min<std::size_t>(count, 999));
 
-      mvprintw(row, col, "%02d", hour);
-      mvaddch(row, col + 2, '[');
-
-      for (int j = 0; j < barWidth && j < 5; ++j)
-        mvaddch(row, col + 3 + j, '#');
-
-      mvaddch(row, col + 8, ']');
+      mvprintw(row, col, "%02d:%c%3d", hour, levels[intensity], displayedCount);
     }
 
+    // FOOTER
     mvaddstr(LINES - 2, 2, "[r] Refresh statistics   [q/Esc] Back");
 
     refresh();
