@@ -20,9 +20,11 @@ add_executable(univecho
 )
 
 
-if(WIND32)
-  target_compile_definitions(univecho PRIVATE PDC_WIDE
-  PDC_FORCE_UTF8)
+if(WIN32)
+  target_compile_definitions(univecho PRIVATE
+        PDC_WIDE
+        PDC_FORCE_UTF8
+    )
 endif()
 
 target_include_directories(univecho PRIVATE
