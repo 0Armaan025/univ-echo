@@ -42,11 +42,10 @@ if(WIN32)
     )
 
   target_link_libraries(univecho PRIVATE
-        ${PDCURSES_LIBRARY
-        winmm}
+        ${PDCURSES_LIBRARY}
+        winmm)
 
-        
-    )
+
 else()
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(NCURSESW REQUIRED IMPORTED_TARGET ncursesw)
