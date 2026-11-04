@@ -2,7 +2,15 @@
 
 A terminal-based personal memory tool with a ncurses TUI. Save memories, import your shell history, search past commands by meaning, and peek at your terminal habits — all stored locally in SQLite.
 
-![Image 1](assets/univ-echo-screenshot.png)
+<img width="1256" height="220" alt="image(75)" src="https://github.com/user-attachments/assets/cf19d702-65dd-4baa-9b4e-6f784401dfb1" />
+<img width="1245" height="1021" alt="image(68)" src="https://github.com/user-attachments/assets/75940351-2147-4b53-87e7-3a215348196d" />
+<img width="1240" height="1017" alt="image(69)" src="https://github.com/user-attachments/assets/0438eee5-c40e-4bed-91bd-3db6c99fb83f" />
+<img width="1106" height="881" alt="image(70)" src="https://github.com/user-attachments/assets/4030e14d-8d41-43c0-a926-54def9d80df9" />
+<img width="1269" height="156" alt="image(71)" src="https://github.com/user-attachments/assets/a16ce0c2-11f6-4ca9-bc2c-9d2047debbd5" />
+<img width="1270" height="1007" alt="image(72)" src="https://github.com/user-attachments/assets/93d5e706-ae23-4029-bab3-afb60f260365" />
+<img width="1263" height="1004" alt="image(73)" src="https://github.com/user-attachments/assets/8c8cc407-e2ef-4c7b-8869-38c5cfb645a5" />
+<img width="891" height="1003" alt="image(74)" src="https://github.com/user-attachments/assets/fad5bd3e-e0b8-4086-9e07-8dae42faff8f" />
+
 
 Website: https://univ-echo.vercel.app
 
