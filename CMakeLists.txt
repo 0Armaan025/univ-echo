@@ -30,6 +30,8 @@ if(WIN32)
         REQUIRED
     )
 
+
+
   find_library(PDCURSES_LIBRARY
         NAMES pdcurses
         REQUIRED
@@ -40,7 +42,10 @@ if(WIN32)
     )
 
   target_link_libraries(univecho PRIVATE
-        ${PDCURSES_LIBRARY}
+        ${PDCURSES_LIBRARY
+        winmm}
+
+        
     )
 else()
   find_package(PkgConfig REQUIRED)

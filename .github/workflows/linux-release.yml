@@ -113,6 +113,17 @@ jobs:
             mingw-w64-ucrt-x86_64-nlohmann-json
             mingw-w64-ucrt-x86_64-pdcurses
 
+      - name: Diagnose PDCurses
+        run: |
+          echo "=== PDCurses library symbols ==="
+          nm -g "$MINGW_PREFIX/lib/libpdcurses.a" | grep -i endwin || true
+
+          echo "=== PDCurses header ==="
+          grep -n "endwin" "$MINGW_PREFIX/include/pdcurses/curses.h" || true
+
+          echo "=== PDCurses files ==="
+          ls -lh "$MINGW_PREFIX/lib/"*pdcurses*
+
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
