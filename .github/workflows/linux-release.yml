@@ -2,8 +2,12 @@ name: UNIV-ECHO Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+  
+  workflow_displatch:
 
 permissions:
   contents: write
