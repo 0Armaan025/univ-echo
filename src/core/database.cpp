@@ -151,13 +151,6 @@ void Database::initialize() {
     );
 
 
-    CREATE INDEX IF NOT EXISTS command_history_latest_idx
-    ON command_history(
-        command,
-        (timestamp IS NOT NULL) DESC,
-        timestamp DESC,
-        id DESC
-    );
 
     CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts
     USING fts5(
@@ -201,6 +194,14 @@ void Database::initialize() {
         timestamp INTEGER,
         imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(command, source_shell, timestamp)
+    );
+
+    CREATE INDEX IF NOT EXISTS command_history_latest_idx
+    ON command_history(
+        command,
+        (timestamp IS NOT NULL) DESC,
+        timestamp DESC,
+        id DESC
     );
 )SQL";
 
