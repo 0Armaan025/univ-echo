@@ -171,6 +171,11 @@ jobs:
 
           echo "=== Library files ==="
           ls -lh "$MINGW_PREFIX/lib/"*pdcurses*
+
+      - name: Install 7-Zip
+        shell: msys2 {0}
+        run: pacman -S --noconfirm p7zip
+
       - name: Build
         run: cmake --build build --parallel
 
