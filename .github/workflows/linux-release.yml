@@ -134,6 +134,13 @@ jobs:
 
           echo "=== PDCurses libraries ==="
           ls -lh "$MINGW_PREFIX/lib/"*pdcurses*
+
+
+      - name: Configure PDCurses ABI
+        run: |
+          echo "=== PDCurses ABI configuration ==="
+          sed -n '1360,1410p' \
+            "$MINGW_PREFIX/include/pdcurses/curses.h"
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
