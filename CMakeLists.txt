@@ -19,12 +19,19 @@ add_executable(univecho
     src/core/system_monitor.cpp
 )
 
+
+if(WIND32)
+  target_compile_definitions(univecho PRIVATE PDC_WIDE
+  PDC_FORCE_UTF8)
+endif()
+
 target_include_directories(univecho PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 if(WIN32)
   # PDCurses provides the curses API on Windows.
+  #
   find_path(PDCURSES_INCLUDE_DIR
         NAMES curses.h
         REQUIRED
@@ -44,6 +51,7 @@ if(WIN32)
   target_link_libraries(univecho PRIVATE
         ${PDCURSES_LIBRARY}
         winmm)
+
 
 
 else()

@@ -117,6 +117,15 @@ jobs:
             mingw-w64-ucrt-x86_64-nlohmann-json
             mingw-w64-ucrt-x86_64-pdcurses
 
+      - name: Verify PDCurses ABI
+        shell: msys2 {0}
+        run: |
+          echo '#include <curses.h>' | \
+            g++ -DPDC_WIDE -DPDC_FORCE_UTF8 \
+            -I"$MINGW_PREFIX/include/pdcurses" -E -dM -x c++ - | \
+            grep -E 'PDC_WIDE|PDC_FORCE_UTF8|endwin'
+
+
       - name: Diagnose PDCurses
         run: |
           echo "=== PDCurses version ==="
@@ -136,11 +145,7 @@ jobs:
           ls -lh "$MINGW_PREFIX/lib/"*pdcurses*
 
 
-      - name: Configure PDCurses ABI
-        run: |
-          echo "=== PDCurses ABI configuration ==="
-          sed -n '1360,1410p' \
-            "$MINGW_PREFIX/include/pdcurses/curses.h"
+
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
