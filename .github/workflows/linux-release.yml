@@ -16,7 +16,7 @@ concurrency:
 permissions:
   contents: write
 
-jobs:
+jobs: 
   linux:
     name: Linux packages
     runs-on: ubuntu-22.04
