@@ -1,0 +1,9 @@
+Architecture: amd64
+Depends: libc6, libstdc++6, libsqlite3-0, libcurl4, libncursesw6
+Description: Terminal-based universal memory and command search
+Maintainer: 0Armaan025
+Package: univ-echo
+Priority: optional
+Section: devel
+Version: 0.1.4
+Installed-Size: 464

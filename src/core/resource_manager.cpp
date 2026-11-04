@@ -59,6 +59,8 @@ bool readMemInfo(const char *key, std::uint64_t &bytes) {
 
 } // namespace
 namespace univecho {
+
+constexpr std::uint64_t GiB = 1024ULL * 1024 * 1024;
 ResourceSnapshot detectResources() {
   ResourceSnapshot result;
 
@@ -120,7 +122,6 @@ ResourceSnapshot detectResources() {
 
   // ignore unlimited
 
-  constexpr std::uint64_t GiB = 1024ULL * 1024 * 1024;
   const bool plausibleLimit = hasLimit && limit < (1ULL << 60);
 
   if (plausibleLimit && hasCurrent) {

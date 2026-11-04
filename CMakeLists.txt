@@ -64,3 +64,36 @@ else()
         -Wall -Wextra -Wpedantic
     )
 endif()
+
+include(GNUInstallDirs)
+
+install(
+    TARGETS univecho
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+set(CPACK_PACKAGE_NAME "univ-echo")
+set(CPACK_PACKAGE_VENDOR "0Armaan025")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Terminal-based universal memory and command search"
+)
+set(CPACK_PACKAGE_CONTACT "https://github.com/0Armaan025/univ-echo")
+
+if(UNIX AND NOT APPLE)
+  set(CPACK_GENERATOR "DEB;RPM")
+endif()
+
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "0Armaan025")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS
+    "libc6, libstdc++6, libsqlite3-0, libcurl4, libncursesw6"
+)
+
+set(CPACK_RPM_PACKAGE_RELEASE "1")
+set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
+set(CPACK_RPM_PACKAGE_REQUIRES
+    "glibc, libstdc++, sqlite-libs, libcurl, ncurses-libs"
+)
+
+include(CPack)

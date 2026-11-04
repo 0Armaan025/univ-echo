@@ -1,0 +1,30 @@
+Building target platforms: x86_64
+Building for target x86_64
+error: cannot open Packages database in /var/lib/rpm
++ umask 022
++ cd /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/BUILD/univ-echo-0.1.4-build
++ mv /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/univ-echo-0.1.4-Linux /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/tmpBBroot
++ RPM_EC=0
+++ jobs -p
++ exit 0
++ umask 022
++ cd /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/BUILD/univ-echo-0.1.4-build
++ /usr/bin/rm -rf /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/univ-echo-0.1.4-Linux
++ /usr/bin/mkdir -p /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM
++ /usr/bin/mkdir /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/univ-echo-0.1.4-Linux
++ '[' -e /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/univ-echo-0.1.4-Linux ']'
++ rm -rf /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/univ-echo-0.1.4-Linux
++ mv /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/tmpBBroot /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/univ-echo-0.1.4-Linux
++ /usr/lib/rpm/brp-compress /usr
++ /usr/lib/rpm/brp-strip /usr/bin/strip
++ /usr/lib/rpm/brp-strip-static-archive /usr/bin/strip
++ /usr/lib/rpm/brp-strip-comment-note /usr/bin/strip /usr/bin/objdump
++ /usr/lib/rpm/brp-remove-la-files
++ umask 022
++ cd /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/BUILD/univ-echo-0.1.4-build
++ test -d /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/BUILD/univ-echo-0.1.4-build
++ /usr/bin/chmod -Rf a+rX,u+w,g-w,o-w /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/BUILD/univ-echo-0.1.4-build
++ rm -rf /home/armaan025/Desktop/ARMAAN/Coding/projects/univ-echo/dist/_CPack_Packages/Linux/RPM/BUILD/univ-echo-0.1.4-build
++ RPM_EC=0
+++ jobs -p
++ exit 0
