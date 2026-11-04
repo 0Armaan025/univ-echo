@@ -6,7 +6,6 @@
 #include <optional>
 #include <vector>
 
-using namespace std;
 namespace univecho {
 
 struct CommandHistoryEntry {

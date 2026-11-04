@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-using namespace std;
 
 namespace univecho {
 std::vector<CommandRecord> semanticSearch(Database &database,

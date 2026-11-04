@@ -11,12 +11,11 @@
 #include <utility>
 
 #include <iostream>
-using namespace std;
 namespace univecho {
 
 struct Memory {
   long long id{};
-  string title;
+  std::string title;
   std::string content;
   std::string createdAt;
 };

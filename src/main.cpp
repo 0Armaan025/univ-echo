@@ -1187,7 +1187,7 @@ int main(int argc, char *argv[]) {
       const auto results = database.searchCommands(query);
 
       if (results.empty()) {
-        cout << "No matching commands found..." << endl;
+        std::cout << "No matching commands found..." << std::endl;
         return 0;
       }
 
@@ -1199,16 +1199,16 @@ int main(int argc, char *argv[]) {
           std::tm localTime{};
 
           if (getLocalTime(timestamp, localTime)) {
-            cout << put_time(&localTime, "%Y-%m-%d %H:%M:%S");
+            std::cout << std::put_time(&localTime, "%Y-%m-%d %H:%M:%S");
           } else {
           }
         } else {
         }
 
-        cout << endl << record.command << endl << endl;
+        std::cout << std::endl << record.command << std::endl << std::endl;
       }
 
-      cout << results.size() << " unique command(s).\n";
+      std::cout << results.size() << " unique command(s).\n";
       return 0;
     }
 

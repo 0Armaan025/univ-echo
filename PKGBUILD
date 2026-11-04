@@ -1,5 +1,6 @@
 pkgname=univ-echo
-pkgver=0.1.4
+pkgver=0.1.5
+_srcdir="$srcdir/$pkgname-$pkgver"
 pkgrel=1
 pkgdesc="Terminal-based universal memory and command search"
 arch=('x86_64')
@@ -11,16 +12,15 @@ source=("$pkgname-$pkgver.tar.gz::https://github.com/0Armaan025/univ-echo/archiv
 sha256sums=('SKIP')
 
 build() {
-  cmake -S "$srcdir/univ-echo-$pkgver" \
-    -B "$srcdir/univ-echo-$pkgver/build" \
+  cmake -S "$srcdir/$pkgname-$pkgver" \
+    -B "$srcdir/$pkgname-$pkgver/build" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr
 
-  cmake --build "$srcdir/univ-echo-$pkgver/build" \
-    --parallel
+  cmake --build "$srcdir/$pkgname-$pkgver/build" --parallel
 }
 
 package() {
   DESTDIR="$pkgdir" \
-    cmake --install "$srcdir/univ-echo-$pkgver/build"
+    cmake --install "$srcdir/$pkgname-$pkgver/build"
 }

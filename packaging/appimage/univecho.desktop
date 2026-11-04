@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=UNIV-ECHO
+Comment=Universal memory and command search
+Exec=univecho
+Icon=univecho
+Type=Application
+Categories=Utility;System;TerminalEmulator;
+Terminal=true
